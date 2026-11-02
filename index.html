@@ -286,24 +286,25 @@ function pageHome() {
     </div>
     <label>Бүлгийн нэр</label>
     <input id="name" placeholder="Жишээ: Ангийнхан 2026 эсвэл Маркетингийн хэлтэс" maxlength="60">
+    <label class="chk"><input type="checkbox" id="multi"> <span>📅 <b>Олон өдрийн горим</b><br><span class="small muted">Санта нэг хүндээ өдөр бүр жижиг бэлэг өгнө. Дараа нь бүгд ил болж, хүлээн авагч өөрийн Сантадаа том бэлэг өгнө.</span></span></label>
+    <div id="multiBox" class="hide">
+      <h3 style="margin:14px 0 0">🎁 Өдөр бүрийн жижиг бэлэг</h3>
+      <div class="row">
+        <div><label>Эхлэх өдөр</label><input id="startDate" type="date"></div>
+        <div><label>Дуусах өдөр</label><input id="endDate" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>Өдрийн төсөв (₮)</label><input id="dailyBudget" type="number" inputmode="numeric" placeholder="5000" step="1000"></div>
+        <div style="display:flex;align-items:flex-end"><label class="chk" style="margin-bottom:12px"><input type="checkbox" id="workdays" checked> Зөвхөн ажлын өдрүүд</label></div>
+      </div>
+      <h3 style="margin:18px 0 0">🎉 Ил болох, том бэлэг солилцох</h3>
+    </div>
     <div class="row">
       <div><label id="budgetLbl">Бэлгийн төсөв (₮)</label><input id="budget" type="number" inputmode="numeric" placeholder="30000" step="1000"></div>
-      <div id="dateWrap"><label>Бэлэг солилцох өдөр</label><input id="date" type="date"></div>
+      <div><label id="dateLbl">Бэлэг солилцох өдөр</label><input id="date" type="date"></div>
     </div>
     <label>Нэмэлт мэдээлэл <span class="muted">(заавал биш)</span></label>
     <input id="note" placeholder="Жишээ: 12/27-нд оффис дээр, 18:00 цагт" maxlength="300">
-    <label class="chk"><input type="checkbox" id="multi"> <span>📅 <b>Олон өдрийн горим</b><br><span class="small muted">Санта нэг хүндээ өдөр бүр жижиг бэлэг өгнө. Сүүлийн өдөр бүгд ил болж, хүлээн авагч өөрийн Сантад том бэлэг буцааж өгнө.</span></span></label>
-    <div id="multiBox" class="hide">
-      <div class="row">
-        <div><label>Эхлэх өдөр</label><input id="startDate" type="date"></div>
-        <div><label>Баярын өдөр 🎉</label><input id="endDate" type="date"></div>
-      </div>
-      <div class="row">
-        <div><label>Өдрийн бэлгийн төсөв (₮)</label><input id="dailyBudget" type="number" inputmode="numeric" placeholder="5000" step="1000"></div>
-        <div style="display:flex;align-items:flex-end"><label class="chk" style="margin-bottom:12px"><input type="checkbox" id="workdays" checked> Зөвхөн ажлын өдрүүд</label></div>
-      </div>
-      <p class="small muted">Баярын өдөр бол сүүлийн өдөр: бүгд ил болж, хүн бүр өөрийн Сантадаа том бэлэг өгнө.</p>
-    </div>
     <label class="chk"><input type="checkbox" id="joinMe" checked> Би өөрөө ч бас оролцоно</label>
     <div id="orgBox"><label>Таны нэр</label><input id="orgName" maxlength="40" placeholder="Нэр"></div>
     <div id="deptBox" class="hide">
@@ -324,12 +325,14 @@ function pageHome() {
     $('#deptBox').classList.toggle('hide', mode !== 'company');
     if (mode === 'company') { $('#joinMe').checked = false; $('#orgBox').classList.add('hide'); }
   };
+  // Ил болох өдрийг хоосон бол жижиг бэлгийн дуусах өдрөөр автоматаар бөглөнө
+  $('#endDate').onchange = e => { if ($('#multi').checked && !$('#date').value) $('#date').value = e.target.value; };
   $('#joinMe').onchange = e => $('#orgBox').classList.toggle('hide', !e.target.checked);
   $('#multi').onchange = e => {
     const on = e.target.checked;
     $('#multiBox').classList.toggle('hide', !on);
-    $('#dateWrap').classList.toggle('hide', on);
     $('#budgetLbl').textContent = on ? 'Том бэлгийн төсөв (₮)' : 'Бэлгийн төсөв (₮)';
+    $('#dateLbl').textContent = on ? 'Ил болох өдөр' : 'Бэлэг солилцох өдөр';
   };
   $('#create').onclick = async () => {
     const btn = $('#create'); $('#err').textContent = '';
@@ -338,7 +341,7 @@ function pageHome() {
     btn.disabled = true;
     try {
       const d = await api('create', {
-        name: $('#name').value, mode, budget: $('#budget').value, date: $('#multi').checked ? $('#endDate').value : $('#date').value, note: $('#note').value,
+        name: $('#name').value, mode, budget: $('#budget').value, date: $('#date').value || ($('#multi').checked ? $('#endDate').value : ''), note: $('#note').value,
         sameDeptBlocked: $('#sameDept').checked, joinAsMember, organizerName: $('#orgName').value,
         multiDay: $('#multi').checked, startDate: $('#startDate').value, endDate: $('#endDate').value,
         dailyBudget: $('#dailyBudget').value, workdaysOnly: $('#workdays').checked,
@@ -374,7 +377,7 @@ async function pageJoin(gid) {
     <h1 style="color:#fff">${esc(g.name)}</h1>
     <div class="row small" style="margin-top:8px">
       ${g.budget ? `<div>💰 Төсөв: <b>${fmt(g.budget)}</b></div>` : ''}
-      ${g.date ? `<div>📅 Өдөр: <b>${esc(g.date)}</b></div>` : ''}
+      ${g.date ? `<div>${g.multiDay ? '🎉 Ил болох' : '📅 Өдөр'}: <b>${esc(g.date)}</b></div>` : ''}
       <div>👥 <b>${g.count}</b> хүн нэгдсэн</div>
     </div>
     ${g.note ? `<p class="small" style="margin-top:8px">📝 ${esc(g.note)}</p>` : ''}
@@ -475,7 +478,7 @@ async function pageMe(gid, token, flag) {
     <h1 style="color:#fff">Сайн уу, ${esc(me.name)}!</h1>
     <div class="row small">
       ${g.budget ? `<div>💰 Төсөв: <b>${fmt(g.budget)}</b></div>` : ''}
-      ${g.date ? `<div>📅 Өдөр: <b>${esc(g.date)}</b></div>` : ''}
+      ${g.date ? `<div>${g.multiDay ? '🎉 Ил болох' : '📅 Өдөр'}: <b>${esc(g.date)}</b></div>` : ''}
     </div>
     ${g.note ? `<p class="small" style="margin-top:6px">📝 ${esc(g.note)}</p>` : ''}
   </div>
@@ -532,7 +535,7 @@ async function pageMe(gid, token, flag) {
       ${inPeriod ? `<p class="small" style="margin:8px 0 0">Өнөөдрийн сэдэв:</p><div class="theme">${esc(themeFor(g, tIdx))}</div>
         <button class="btn block ${d.multi.myGave[tk] ? 'green' : ''}" id="gaveBtn">${d.multi.myGave[tk] ? '✅ Өнөөдрийн бэлгээ өгсөн' : '🎁 Өнөөдрийн бэлгээ өгсөн гэж тэмдэглэх'}</button>`
       : g.days.length && tk < g.days[0] ? `<p class="note">⏳ ${shortDate(g.days[0])}-нд эхэлнэ. Бэлгээ урьдчилан бэлдээрэй!</p>`
-      : g.days.length ? `<p class="note">Өдөр бүрийн бэлгийн хугацаа дууслаа. ${g.date ? esc(g.date) + '-нд' : 'Баярын өдөр'} бүгд ил болно 🎉</p>` : `<p class="note">Зохион байгуулагч хугацаагаа тохируулаагүй байна.</p>`}
+      : g.days.length ? `<p class="note">Жижиг бэлгийн хугацаа дууслаа. ${g.date ? esc(g.date) + '-нд' : 'Удахгүй'} бүгд ил болж, том бэлгээ солилцоно 🎉</p>` : `<p class="note">Зохион байгуулагч хугацаагаа тохируулаагүй байна.</p>`}
       <div style="margin-top:12px">${dayStrip(g, d.multi.myGave)}</div>
     </div>` : ''}
     <div class="card">
@@ -565,7 +568,7 @@ async function pageMe(gid, token, flag) {
   ${multi && !g.revealed ? `
   <div class="card">
     <h2>🕵️ Миний Санта хэн бэ?</h2>
-    <p class="small muted">Сэжүүрээ ашиглаад таагаарай. Баярын өдөр бүгд ил болоход хэн зөв таасан нь гарна.</p>
+    <p class="small muted">Сэжүүрээ ашиглаад таагаарай. Бүгд ил болоход хэн зөв таасан нь гарна.</p>
     <select id="guess"><option value="">— Сонгох —</option>${d.multi.others.map(o => `<option value="${o.id}" ${o.id === d.multi.myGuess ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
   </div>` : ''}`}
 
@@ -716,7 +719,7 @@ async function pageAdmin(gid, key, flag) {
       ${g.days.length ? dayStrip(g, {}) : ''}
       <div class="note" style="margin:10px 0">
         ${g.revealed ? `<b>🎉 Бүгд ил болсон.</b> Хүн бүр өөрийн Сантагаа харж, түүнд том бэлгээ өгнө.<br><button class="btn ghost sm" id="unreveal" style="margin-top:8px">Ил болгохыг буцаах</button>`
-        : `<b>Баярын өдөр</b> энэ товчийг дарахад хүн бүрийн хуудсанд өөрийн Санта нь гарч ирж, хэн зөв таасан нь харагдана. ${ps.filter(p => p.guessed).length}/${ps.length} хүн таамаг өгсөн.<br><button class="btn sm" id="reveal" style="margin-top:8px">🎉 Бүгдийг ил болгох</button>`}
+        : `<b>Ил болох өдөр</b> энэ товчийг дарахад хүн бүрийн хуудсанд өөрийн Санта нь гарч ирж, хэн зөв таасан нь харагдана. ${ps.filter(p => p.guessed).length}/${ps.length} хүн таамаг өгсөн.<br><button class="btn sm" id="reveal" style="margin-top:8px">🎉 Бүгдийг ил болгох</button>`}
       </div>` : ''}
       <h2>🎉 Сугалаа татагдлаа</h2>
       <p class="small">Хүн бүр хувийн линкээрээ орж хэнд бэлэг өгөхөө харна. Хараагүй хүмүүст сануулаарай.</p>
@@ -730,14 +733,14 @@ async function pageAdmin(gid, key, flag) {
       <label>Бүлгийн нэр</label><input id="sName" value="${esc(g.name)}" maxlength="60">
       <div class="row">
         <div><label id="sBudgetLbl">${g.multiDay ? 'Том бэлгийн төсөв (₮)' : 'Төсөв (₮)'}</label><input id="sBudget" type="number" value="${g.budget || ''}"></div>
-        <div id="sDateWrap" class="${g.multiDay ? 'hide' : ''}"><label>Бэлэг солилцох өдөр</label><input id="sDate" type="date" value="${esc(g.date)}"></div>
+        <div><label id="sDateLbl">${g.multiDay ? 'Ил болох өдөр' : 'Бэлэг солилцох өдөр'}</label><input id="sDate" type="date" value="${esc(g.date)}"></div>
       </div>
       <label>Нэмэлт мэдээлэл</label><input id="sNote" value="${esc(g.note)}" maxlength="300">
       <label class="chk"><input type="checkbox" id="sMulti" ${g.multiDay ? 'checked' : ''}> 📅 Олон өдрийн горим</label>
       <div id="sMultiBox" class="${g.multiDay ? '' : 'hide'}">
         <div class="row">
-          <div><label>Эхлэх өдөр</label><input id="sStart" type="date" value="${esc(g.startDate)}"></div>
-          <div><label>Баярын өдөр 🎉</label><input id="sEnd" type="date" value="${esc(g.endDate)}"></div>
+          <div><label>Жижиг бэлэг эхлэх өдөр</label><input id="sStart" type="date" value="${esc(g.startDate)}"></div>
+          <div><label>Жижиг бэлэг дуусах өдөр</label><input id="sEnd" type="date" value="${esc(g.endDate)}"></div>
         </div>
         <div class="row">
           <div><label>Өдрийн төсөв (₮)</label><input id="sDaily" type="number" value="${g.dailyBudget || ''}"></div>
@@ -773,12 +776,12 @@ async function pageAdmin(gid, key, flag) {
     }
     $('#sMulti').onchange = e => {
       const on = e.target.checked;
-      $('#sMultiBox').classList.toggle('hide', !on); $('#sDateWrap').classList.toggle('hide', on);
+      $('#sMultiBox').classList.toggle('hide', !on); $('#sDateLbl').textContent = on ? 'Ил болох өдөр' : 'Бэлэг солилцох өдөр';
       $('#sBudgetLbl').textContent = on ? 'Том бэлгийн төсөв (₮)' : 'Төсөв (₮)';
     };
     $('#reveal')?.addEventListener('click', () => load('reveal').then(() => { confetti(); toast('Бүгд ил боллоо 🎉'); }).catch(e => toast(e.message)));
     $('#unreveal')?.addEventListener('click', () => load('unreveal').catch(e => toast(e.message)));
-    $('#sSave').onclick = () => load('settings', { name: $('#sName').value, budget: $('#sBudget').value, date: $('#sMulti').checked ? $('#sEnd').value : $('#sDate').value, note: $('#sNote').value,
+    $('#sSave').onclick = () => load('settings', { name: $('#sName').value, budget: $('#sBudget').value, date: $('#sDate').value, note: $('#sNote').value,
       multiDay: $('#sMulti').checked, startDate: $('#sStart').value, endDate: $('#sEnd').value, dailyBudget: $('#sDaily').value,
       workdaysOnly: $('#sWork').checked, themes: $('#sThemes').value.split('\n') })
       .then(() => toast('Хадгалагдлаа ✓')).catch(e => toast(e.message));
