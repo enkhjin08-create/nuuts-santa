@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Нууц Санта 🎅</title>
+<meta name="description" content="Найзууд, хамт олонтойгоо Нууц Санта тоглох хамгийн хялбар арга. Үнэгүй.">
+<meta property="og:title" content="Нууц Санта 🎅 — сугалаагаа онлайнаар">
+<meta property="og:description" content="Бүлгээ үүсгээд линкээ хуваалц. Хэн хэнд бэлэг өгөхийг нууцаар сугална.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎅</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#fbf5ec; --card:#fffdf9; --ink:#3a2a24; --muted:#8a776d; --line:#eadfd2;
+  --red:#c8323c; --red-d:#9e2230; --green:#2f6b4f; --green-l:#e4f0e8; --gold:#e3a83b; --pink:#f6dfe0;
+  --r:18px; --shadow:0 6px 24px rgba(90,50,30,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Nunito,system-ui,sans-serif;
+  background-image:radial-gradient(#e9dccb 1.2px,transparent 1.2px);background-size:22px 22px;min-height:100vh}
+a{color:var(--red)}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 80px}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.logo{font-family:Lobster,cursive;font-size:28px;color:var(--red);text-decoration:none}
+.logo span{font-size:24px}
+h1,h2,h3{line-height:1.2;margin:0 0 10px}
+h1{font-family:Lobster,cursive;font-weight:400;font-size:42px;color:var(--red-d)}
+h2{font-size:22px;font-weight:800}
+h3{font-size:17px;font-weight:800}
+p{margin:0 0 10px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card.green{background:var(--green-l);border-color:#cfe3d6}
+.card.festive{background:linear-gradient(135deg,#c8323c,#9e2230);color:#fff;border:none}
+.card.festive .muted{color:#f6d3d3}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+input,textarea,select{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;background:#fff;color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--red)}
+textarea{min-height:90px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:13px 22px;font:800 16px Nunito,system-ui,sans-serif;cursor:pointer;background:var(--red);color:#fff;text-decoration:none;transition:transform .1s,background .2s}
+.btn:hover{background:var(--red-d)} .btn:active{transform:scale(.97)}
+.btn.ghost{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.btn.green{background:var(--green)} .btn.green:hover{background:#245640}
+.btn.sm{padding:8px 14px;font-size:14px}
+.btn.block{width:100%}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.seg{display:flex;background:#f1e7da;border-radius:999px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:none;border-radius:999px;padding:10px;font:700 15px Nunito,system-ui,sans-serif;cursor:pointer;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--red);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:15px;margin-top:12px;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--red)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;background:#f1e7da;color:var(--muted)}
+.pill.ok{background:var(--green-l);color:var(--green)} .pill.red{background:var(--pink);color:var(--red-d)}
+.hero{text-align:center;padding:26px 6px 10px}
+.hero .big{font-size:64px;line-height:1}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+.step{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;font-weight:700;font-size:14px}
+.step b{display:block;font-size:26px}
+.list{list-style:none;padding:0;margin:0}
+.list li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.list li:last-child{border:none}
+.list .grow{flex:1;min-width:120px}
+.names{display:flex;flex-wrap:wrap;gap:6px}
+.names span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:14px;font-weight:600}
+.copy{display:flex;gap:8px}.copy input{font-size:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;transition:transform .3s;z-index:99;max-width:90vw;text-align:center}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.err{color:var(--red-d);font-weight:700;font-size:14px;margin-top:8px;min-height:1em}
+/* Бэлгийн карт */
+.gifts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.gift{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.gift img{width:100%;aspect-ratio:1;object-fit:cover;background:#f3ebe0}
+.gift .b{padding:10px;display:flex;flex-direction:column;gap:4px;flex:1}
+.gift .n{font-weight:700;font-size:14px;line-height:1.3}
+.gift .p{font-weight:800;color:var(--red)}
+.gift .acts{display:flex;gap:6px;margin-top:auto;padding-top:6px}
+.gift .acts>*{flex:1;font-size:12px;padding:7px 8px}
+.brand{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.brand.zt{color:#b0476a}.brand.meowie{color:#a05cc0}.brand.cc{color:#2f7f8f}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:700 13px Nunito,system-ui,sans-serif;cursor:pointer;color:var(--muted)}
+.chips button.on{border-color:var(--red);color:var(--red)}
+.note{background:#fff6e3;border:1px dashed var(--gold);border-radius:12px;padding:10px 12px;font-size:14px}
+/* Хүслийн жагсаалт */
+.wishitem{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.wishitem input{flex:1}
+.wishitem img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.x{border:none;background:#f1e7da;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;flex:none}
+.wishview li{display:flex;gap:10px;align-items:center}
+.wishview img{width:48px;height:48px;border-radius:10px;object-fit:cover}
+/* Нээх анимаци */
+.reveal{text-align:center;padding:10px 0}
+.mailbox{width:180px;margin:10px auto 16px;position:relative;cursor:pointer}
+.mailbox .body{background:var(--red);border-radius:90px 90px 14px 14px;height:150px;position:relative;box-shadow:inset 0 -10px 0 var(--red-d)}
+.mailbox .slot{position:absolute;top:44px;left:30px;right:30px;height:12px;background:#2a1b17;border-radius:8px}
+.mailbox .lbl{position:absolute;top:70px;left:18px;right:18px;background:#fff;border-radius:8px;padding:6px 4px;font-family:Lobster;color:var(--red-d);font-size:17px}
+.mailbox .letter{position:absolute;left:50%;top:40px;width:120px;height:80px;margin-left:-60px;background:#fffdf5;border:2px solid var(--gold);border-radius:6px;transition:transform .9s cubic-bezier(.2,1.4,.4,1),opacity .3s;opacity:0;z-index:-1}
+.mailbox.open .letter{transform:translateY(-90px) rotate(-6deg);opacity:1}
+.mailbox:not(.open){animation:wob 2.2s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(0)}10%{transform:rotate(-4deg)}20%{transform:rotate(4deg)}30%{transform:rotate(0)}}
+.who{font-family:Lobster;font-size:46px;color:var(--red-d);animation:pop .6s ease}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+/* Чат */
+.thread{display:flex;flex-direction:column;gap:8px;margin:10px 0;max-height:320px;overflow:auto}
+.bub{max-width:80%;padding:9px 13px;border-radius:16px;font-size:15px}
+.bub.mine{align-self:flex-end;background:var(--red);color:#fff;border-bottom-right-radius:4px}
+.bub.theirs{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub .k{font-size:11px;font-weight:800;opacity:.75;display:block}
+.modal{position:fixed;inset:0;background:rgba(40,25,20,.5);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.modal .sheet{background:var(--bg);width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 16px}
+@media(min-width:720px){.modal{align-items:center}.modal .sheet{border-radius:22px}}
+.snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.snow i{position:absolute;top:-10px;color:#fff;text-shadow:0 0 2px #d9c8b4;animation:fall linear infinite;font-style:normal}
+@keyframes fall{to{transform:translateY(105vh)}}
+.wrap{position:relative;z-index:1}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
+.qr{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:12px;width:max-content;margin:10px auto}
+.hide{display:none!important}
+button{font-family:Nunito,system-ui,sans-serif}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+</style>
+</head>
+<body>
+<div class="snow" id="snow"></div>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#/">Нууц Санта <span>🎅</span></a>
+    <a class="btn ghost sm" href="#/mine" id="mineLink">Миний бүлгүүд</a>
+  </header>
+  <main id="app"></main>
+  <footer>Нууц Санта · Үнэгүй · Бэлгийн санааг <b>Зөвхөн түүнд</b>, <b>Meowie</b>, <b>CuteCups</b> санал болгож байна</footer>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= Туслах функцууд ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const app = $('#app');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n) => Number(n || 0).toLocaleString('en-US').replace(/,/g, "'") + '₮';
+const ORIGIN = location.origin + location.pathname;
+const link = (h) => ORIGIN + '#' + h;
+
+async function api(action, body = {}) {
+  const r = await fetch('/api', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action, ...body }) });
+  const d = await r.json().catch(() => ({ error: 'Сүлжээний алдаа' }));
+  if (!r.ok || d.error) throw new Error(d.error || 'Алдаа гарлаа');
+  return d;
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2400); }
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast('Хуулагдлаа ✓'); }
+  catch { prompt('Хуулж аваарай:', text); }
+}
+async function share(text, url) {
+  if (navigator.share) { try { await navigator.share({ title: 'Нууц Санта 🎅', text, url }); return; } catch {} }
+  copy(url);
+}
+const LS = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+function remember(entry) {
+  const all = LS.get('ns_groups', []).filter(g => !(g.gid === entry.gid && g.role === entry.role));
+  all.unshift({ ...entry, at: Date.now() }); LS.set('ns_groups', all.slice(0, 30));
+}
+function openModal(html) { $('#sheet').innerHTML = html; $('#modal').classList.add('on'); }
+function closeModal() { $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+/* Цас */
+(function () {
+  const s = $('#snow'); if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (let i = 0; i < 22; i++) {
+    const f = document.createElement('i'); f.textContent = Math.random() > .5 ? '❄' : '•';
+    f.style.left = Math.random() * 100 + 'vw'; f.style.fontSize = (8 + Math.random() * 14) + 'px';
+    f.style.animationDuration = (8 + Math.random() * 12) + 's'; f.style.animationDelay = (-Math.random() * 20) + 's';
+    f.style.opacity = .4 + Math.random() * .5; s.appendChild(f);
+  }
+})();
+
+/* ================= Бэлгийн каталог ================= */
+let GIFTS = null;
+async function gifts() {
+  if (!GIFTS) { try { GIFTS = await (await fetch('gifts.json')).json(); } catch { GIFTS = []; } }
+  return GIFTS;
+}
+const brandCls = b => b === 'Meowie' ? 'meowie' : b === 'CuteCups' ? 'cc' : 'zt';
+function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function giftCard(g, opts = {}) {
+  return `<div class="gift">
+    <img loading="lazy" src="${esc(g.img)}" alt="${esc(g.name)}" onerror="this.style.visibility='hidden'">
+    <div class="b">
+      <span class="brand ${brandCls(g.brand)}">${esc(g.brand)}</span>
+      <span class="n">${esc(g.name)}</span>
+      <span class="p">${fmt(g.price)}</span>
+      <div class="acts">
+        ${opts.pick ? `<button class="btn sm" data-pick='${esc(JSON.stringify(g))}'>+ Нэмэх</button>` : ''}
+        <a class="btn ghost sm" href="${esc(g.url)}" target="_blank" rel="noopener">Үзэх</a>
+      </div>
+    </div></div>`;
+}
+/* Төсөвт тохирсон бэлгийн санал */
+async function giftSection(el, budget, opts = {}) {
+  const all = await gifts();
+  let brand = 'all';
+  const max = budget > 0 ? budget * 1.1 : Infinity;
+  const min = budget > 0 ? budget * 0.35 : 0;
+  const pool = shuffle(all.filter(g => g.price <= max && g.price >= min));
+  const render = () => {
+    const list = pool.filter(g => brand === 'all' || g.brand === brand).slice(0, opts.limit || 8);
+    el.innerHTML = `
+      <div class="chips">${['all', 'Зөвхөн түүнд', 'Meowie', 'CuteCups'].map(b =>
+        `<button data-b="${b}" class="${b === brand ? 'on' : ''}">${b === 'all' ? 'Бүгд' : b}</button>`).join('')}</div>
+      ${list.length ? `<div class="gifts">${list.map(g => giftCard(g, opts)).join('')}</div>` : `<p class="muted">Энэ төсөвт тохирох санал алга.</p>`}
+      <p class="small muted" style="margin-top:10px">💡 Эдгээр нь зөвхөн санаа. Бэлгээ хаанаас ч авч болно.</p>`;
+    el.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { brand = b.dataset.b; render(); });
+    el.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => opts.onPick(JSON.parse(b.dataset.pick)));
+  };
+  render();
+}
+
+/* ================= Хуудсууд ================= */
+const routes = {
+  '': pageHome, 'mine': pageMine, 'g': pageJoin, 'me': pageMe, 'admin': pageAdmin,
+};
+function router() {
+  const [r, ...args] = location.hash.replace(/^#\/?/, '').split('/');
+  (routes[r] || pageHome)(...args.map(decodeURIComponent));
+  window.scrollTo(0, 0);
+}
+addEventListener('hashchange', router);
+
+/* ---------- Нүүр + бүлэг үүсгэх ---------- */
+function pageHome() {
+  let mode = 'friends';
+  app.innerHTML = `
+  <section class="hero">
+    <div class="big">🎁</div>
+    <h1>Нууц Санта</h1>
+    <p class="muted">Найзууд, хамт олонтойгоо бэлэг солилцох хамгийн хялбар арга.<br>Бүртгэл шаардахгүй, үнэгүй.</p>
+  </section>
+  <div class="steps">
+    <div class="step"><b>1</b>Бүлгээ үүсгэ</div>
+    <div class="step"><b>2</b>Линкээ хуваалц</div>
+    <div class="step"><b>3</b>Хүслээ бич</div>
+    <div class="step"><b>4</b>Нууцаар сугал 🎅</div>
+  </div>
+  <div class="card">
+    <h2>Шинэ бүлэг үүсгэх</h2>
+    <div class="seg" id="mode">
+      <button data-m="friends" class="on">👯 Найзууд</button>
+      <button data-m="company">🏢 Байгууллага</button>
+    </div>
+    <label>Бүлгийн нэр</label>
+    <input id="name" placeholder="Жишээ: Ангийнхан 2026 эсвэл Маркетингийн хэлтэс" maxlength="60">
+    <div class="row">
+      <div><label>Бэлгийн төсөв (₮)</label><input id="budget" type="number" inputmode="numeric" placeholder="30000" step="1000"></div>
+      <div><label>Бэлэг солилцох өдөр</label><input id="date" type="date"></div>
+    </div>
+    <label>Нэмэлт мэдээлэл <span class="muted">(заавал биш)</span></label>
+    <input id="note" placeholder="Жишээ: 12/27-нд оффис дээр, 18:00 цагт" maxlength="300">
+    <label class="chk"><input type="checkbox" id="joinMe" checked> Би өөрөө ч бас оролцоно</label>
+    <div id="orgBox"><label>Таны нэр</label><input id="orgName" maxlength="40" placeholder="Нэр"></div>
+    <div id="deptBox" class="hide">
+      <label class="chk"><input type="checkbox" id="sameDept"> Нэг хэлтсийнхэн бие биеэ сугалахгүй</label>
+      <p class="small muted">Байгууллагын горимд ажилчдын нэрсийг Excel-ээс хуулж нэг дор оруулах боломжтой.</p>
+    </div>
+    <div class="err" id="err"></div>
+    <button class="btn block" id="create">Бүлэг үүсгэх 🎄</button>
+  </div>
+  <div class="card green">
+    <h3>🎁 Төсөвтөө тохирсон бэлэг олоход тусална</h3>
+    <p class="small">Таны Санта хүслийн жагсаалтыг чинь харна. Бэлгийн санаа хэрэгтэй бол <b>Зөвхөн түүнд</b>, <b>Meowie</b>, <b>CuteCups</b>-ийн бүтээгдэхүүнээс санал болгоно. Заавал тэндээс авах шаардлагагүй.</p>
+  </div>`;
+  const mb = $('#mode');
+  mb.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    mode = b.dataset.m; mb.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('#deptBox').classList.toggle('hide', mode !== 'company');
+    if (mode === 'company') { $('#joinMe').checked = false; $('#orgBox').classList.add('hide'); }
+  };
+  $('#joinMe').onchange = e => $('#orgBox').classList.toggle('hide', !e.target.checked);
+  $('#create').onclick = async () => {
+    const btn = $('#create'); $('#err').textContent = '';
+    const joinAsMember = $('#joinMe').checked;
+    if (joinAsMember && !$('#orgName').value.trim()) { $('#err').textContent = 'Нэрээ бичнэ үү'; return; }
+    btn.disabled = true;
+    try {
+      const d = await api('create', {
+        name: $('#name').value, mode, budget: $('#budget').value, date: $('#date').value, note: $('#note').value,
+        sameDeptBlocked: $('#sameDept').checked, joinAsMember, organizerName: $('#orgName').value,
+      });
+      const gname = $('#name').value.trim();
+      remember({ gid: d.gid, role: 'admin', key: d.adminKey, name: gname });
+      if (d.token) remember({ gid: d.gid, role: 'me', key: d.token, name: gname });
+      location.hash = `#/admin/${d.gid}/${d.adminKey}/new`;
+    } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
+  };
+}
+
+/* ---------- Миний бүлгүүд (энэ төхөөрөмж дээр) ---------- */
+function pageMine() {
+  const all = LS.get('ns_groups', []);
+  app.innerHTML = `<div class="card"><h2>Миний бүлгүүд</h2>
+    <p class="small muted">Энэ төхөөрөмж дээр нээсэн бүлгүүд. Өөр утаснаас орох бол хувийн линкээ ашиглаарай.</p>
+    ${all.length ? `<ul class="list">${all.map(g => `<li>
+      <span class="grow"><b>${esc(g.name || g.gid)}</b><br><span class="small muted">${g.role === 'admin' ? 'Зохион байгуулагч' : 'Оролцогч'}</span></span>
+      <a class="btn sm ${g.role === 'admin' ? 'ghost' : ''}" href="#/${g.role}/${g.gid}/${g.key}">Нээх</a></li>`).join('')}</ul>`
+      : `<p>Одоогоор бүлэг алга.</p><a class="btn" href="#/">Бүлэг үүсгэх</a>`}</div>`;
+}
+
+/* ---------- Нэгдэх ---------- */
+async function pageJoin(gid) {
+  app.innerHTML = `<div class="card"><p class="muted">Ачаалж байна…</p></div>`;
+  let g;
+  try { g = await api('group', { gid }); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/">Нүүр</a></div>`; return; }
+  const mineHere = LS.get('ns_groups', []).find(x => x.gid === gid && x.role === 'me');
+  app.innerHTML = `
+  <div class="card festive">
+    <p class="muted small">Таныг Нууц Сантад урьж байна 🎅</p>
+    <h1 style="color:#fff">${esc(g.name)}</h1>
+    <div class="row small" style="margin-top:8px">
+      ${g.budget ? `<div>💰 Төсөв: <b>${fmt(g.budget)}</b></div>` : ''}
+      ${g.date ? `<div>📅 Өдөр: <b>${esc(g.date)}</b></div>` : ''}
+      <div>👥 <b>${g.count}</b> хүн нэгдсэн</div>
+    </div>
+    ${g.note ? `<p class="small" style="margin-top:8px">📝 ${esc(g.note)}</p>` : ''}
+  </div>
+  ${mineHere ? `<div class="card green"><b>Та энэ бүлэгт нэгдсэн байна.</b> <a class="btn sm green" href="#/me/${gid}/${mineHere.key}">Миний хуудас →</a></div>` : ''}
+  ${g.drawn ? `<div class="card"><h2>Сугалаа татагдсан 🎉</h2><p>Энэ бүлгийн сугалаа аль хэдийн татагдсан тул шинээр нэгдэх боломжгүй. Хувийн линкээрээ орно уу.</p></div>` : `
+  <div class="card">
+    <h2>Нэгдэх</h2>
+    <label>Таны нэр</label><input id="jname" maxlength="40" placeholder="Бусад таныг таних нэр">
+    ${g.mode === 'company' ? `<label>Хэлтэс <span class="muted">(заавал биш)</span></label><input id="jdept" maxlength="40">` : ''}
+    <div id="wishEd"></div>
+    <div class="err" id="err"></div>
+    <button class="btn block" id="join">Нэгдэх 🎁</button>
+  </div>`}
+  ${g.names.length ? `<div class="card"><h3>Нэгдсэн хүмүүс</h3><div class="names">${g.names.map(n => `<span>${esc(n)}</span>`).join('')}</div></div>` : ''}`;
+  if (g.drawn) return;
+  const ed = wishEditor($('#wishEd'), {}, g.budget);
+  $('#join').onclick = async () => {
+    const btn = $('#join'); btn.disabled = true; $('#err').textContent = '';
+    try {
+      const d = await api('join', { gid, name: $('#jname').value, dept: $('#jdept')?.value, wish: ed.value() });
+      remember({ gid, role: 'me', key: d.token, name: g.name });
+      location.hash = `#/me/${gid}/${d.token}/welcome`;
+    } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
+  };
+}
+
+/* ---------- Хүслийн жагсаалт засварлагч ---------- */
+function wishEditor(el, wish = {}, budget = 0) {
+  let items = [...(wish.items || [])];
+  if (!items.length) items = [{ text: '' }];
+  el.innerHTML = `
+    <label>🎁 Хүслийн жагсаалт <span class="muted">(Сантад тань тусална)</span></label>
+    <div id="wItems"></div>
+    <div class="row" style="margin-bottom:6px">
+      <button class="btn ghost sm" id="wAdd" type="button">+ Мөр нэмэх</button>
+      <button class="btn green sm" id="wCat" type="button">✨ Санаа харах</button>
+    </div>
+    <label>Дуртай зүйлс</label><input id="wLikes" maxlength="300" placeholder="Жишээ: муур, ягаан өнгө, кофе, ном" value="${esc(wish.likes)}">
+    <label>Хүсэхгүй зүйлс</label><input id="wDis" maxlength="300" placeholder="Жишээ: амттан, хүчтэй үнэр" value="${esc(wish.dislikes)}">
+    <label>Хэмжээ <span class="muted">(хувцас, бөгж г.м., заавал биш)</span></label><input id="wSize" maxlength="100" value="${esc(wish.size)}">`;
+  const draw = () => {
+    $('#wItems', el).innerHTML = items.map((it, i) => `
+      <div class="wishitem">
+        ${it.img ? `<img src="${esc(it.img)}" alt="">` : ''}
+        <input data-i="${i}" maxlength="120" placeholder="${i === 0 ? 'Жишээ: Дулаан оймс, аяга, тэмдэглэлийн дэвтэр' : 'Өөр нэг хүсэл'}" value="${esc(it.text)}">
+        <button class="x" data-del="${i}" type="button" aria-label="Устгах">✕</button>
+      </div>`).join('');
+    el.querySelectorAll('[data-i]').forEach(inp => inp.oninput = () => { items[inp.dataset.i].text = inp.value; });
+    el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { items.splice(+b.dataset.del, 1); if (!items.length) items.push({ text: '' }); draw(); });
+  };
+  draw();
+  $('#wAdd', el).onclick = () => { if (items.length < 6) { items.push({ text: '' }); draw(); } };
+  $('#wCat', el).onclick = () => {
+    openModal(`<div class="mhead"><h2 style="margin:0">✨ Бэлгийн санаа</h2><button class="x" onclick="closeModal()">✕</button></div>
+      <p class="small muted">Таалагдсан зүйлээ хүслийн жагсаалтдаа нэмээрэй.</p><div id="mg"></div>`);
+    giftSection($('#mg'), budget, { pick: true, limit: 24, onPick: g => {
+      const empty = items.findIndex(i => !i.text);
+      const item = { text: g.name, url: g.url, img: g.img, price: g.price, brand: g.brand };
+      if (empty >= 0) items[empty] = item; else if (items.length < 6) items.push(item); else { toast('Хамгийн ихдээ 6 зүйл'); return; }
+      draw(); toast('Нэмэгдлээ ✓');
+    }});
+  };
+  return {
+    value: () => ({ items: items.filter(i => i.text.trim()), likes: $('#wLikes', el).value, dislikes: $('#wDis', el).value, size: $('#wSize', el).value }),
+  };
+}
+function wishView(w) {
+  if (!w || (!w.items?.length && !w.likes && !w.dislikes && !w.size)) return `<p class="muted">Хүслийн жагсаалт бичээгүй байна. Нэрээ нууцлан асуугаарай 👇</p>`;
+  return `
+    ${w.items?.length ? `<ul class="list wishview">${w.items.map(i => `<li>
+      ${i.img ? `<img src="${esc(i.img)}" alt="">` : '🎁'}
+      <span class="grow">${esc(i.text)}${i.brand ? `<br><span class="brand ${brandCls(i.brand)}">${esc(i.brand)}${i.price ? ' · ' + fmt(i.price) : ''}</span>` : ''}</span>
+      ${i.url ? `<a class="btn ghost sm" href="${esc(i.url)}" target="_blank" rel="noopener">Үзэх</a>` : ''}</li>`).join('')}</ul>` : ''}
+    ${w.likes ? `<p>💚 <b>Дуртай:</b> ${esc(w.likes)}</p>` : ''}
+    ${w.dislikes ? `<p>🚫 <b>Хүсэхгүй:</b> ${esc(w.dislikes)}</p>` : ''}
+    ${w.size ? `<p>📏 <b>Хэмжээ:</b> ${esc(w.size)}</p>` : ''}`;
+}
+
+/* ---------- Оролцогчийн хувийн хуудас ---------- */
+async function pageMe(gid, token, flag) {
+  app.innerHTML = `<div class="card"><p class="muted">Ачаалж байна…</p></div>`;
+  let d;
+  try { d = await api('me', { gid, token }); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/">Нүүр</a></div>`; return; }
+  const { group: g, me, recipient } = d;
+  remember({ gid, role: 'me', key: token, name: g.name });
+  const myLink = link(`/me/${gid}/${token}`);
+  const revealedKey = `ns_rev_${gid}_${token}`;
+  const revealed = LS.get(revealedKey, false);
+
+  app.innerHTML = `
+  <div class="card festive">
+    <p class="muted small">${esc(g.name)}</p>
+    <h1 style="color:#fff">Сайн уу, ${esc(me.name)}!</h1>
+    <div class="row small">
+      ${g.budget ? `<div>💰 Төсөв: <b>${fmt(g.budget)}</b></div>` : ''}
+      ${g.date ? `<div>📅 Өдөр: <b>${esc(g.date)}</b></div>` : ''}
+    </div>
+    ${g.note ? `<p class="small" style="margin-top:6px">📝 ${esc(g.note)}</p>` : ''}
+  </div>
+
+  <div class="card ${flag === 'welcome' ? 'green' : ''}">
+    <h3>🔐 Таны хувийн линк</h3>
+    <p class="small">${flag === 'welcome' ? '<b>Амжилттай нэгдлээ! 🎉</b> ' : ''}Сугалаа татагдсаны дараа энэ линкээр орж хэнд бэлэг өгөхөө харна. Линкээ хадгалж аваарай, бусдад бүү өгөөрэй.</p>
+    <div class="copy"><input readonly value="${esc(myLink)}"><button class="btn sm" id="cp">Хуулах</button></div>
+  </div>
+
+  ${!g.drawn ? `
+  <div class="card" style="text-align:center">
+    <div style="font-size:48px">⏳</div>
+    <h2>Сугалаа хараахан татагдаагүй байна</h2>
+    <p class="muted">Зохион байгуулагч сугалаа татахаар энд таны Нууц Санта болох хүн гарч ирнэ.</p>
+    <button class="btn ghost sm" id="story">📸 Story-д хуваалцах</button>
+  </div>` : `
+  <div class="card">
+    <div class="reveal" id="rev">
+      ${revealed ? '' : `<h2>Таны сугалаа ирлээ! 📮</h2><p class="muted">Шуудангийн хайрцгийг дарж нээгээрэй</p>`}
+      <div class="mailbox ${revealed ? 'open hide' : ''}" id="mbx"><div class="letter"></div><div class="body"><div class="slot"></div><div class="lbl">Нууц Санта</div></div></div>
+      <div id="who" class="${revealed ? '' : 'hide'}">
+        <p class="muted">Та энэ хүний Нууц Санта нь боллоо 🎅</p>
+        <div class="who">${esc(recipient?.name || '—')}</div>
+        ${recipient?.dept ? `<p class="muted">${esc(recipient.dept)}</p>` : ''}
+        <p class="small muted">🤫 Бэлэг солилцох өдөр хүртэл нууцлаарай!</p>
+        <button class="btn ghost sm" id="story">📸 Story-д хуваалцах</button>
+      </div>
+    </div>
+  </div>
+  <div id="after" class="${revealed ? '' : 'hide'}">
+    <div class="card">
+      <h2>🎁 ${esc(recipient?.name)}-ийн хүсэл</h2>
+      ${wishView(recipient?.wish)}
+    </div>
+    <div class="card">
+      <h2>🤫 Нэрээ нууцлан бичих</h2>
+      <p class="small muted">${esc(recipient?.name)} таныг хэн болохыг мэдэхгүй. Асуулт асуух эсвэл сэжүүр өгч болно.</p>
+      <div class="thread" id="t1"></div>
+      <div class="seg" id="kind" style="margin-bottom:8px"><button data-k="msg" class="on">❓ Асуулт</button><button data-k="hint">🔍 Сэжүүр</button></div>
+      <div class="copy"><input id="m1" maxlength="400" placeholder="Жишээ: Ямар өнгөнд дуртай вэ?"><button class="btn sm" id="s1">Илгээх</button></div>
+    </div>
+    <div class="card">
+      <h2>✨ ${g.budget ? fmt(g.budget) + '-ийн' : ''} бэлгийн санаа</h2>
+      <div id="gs"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>💌 Таны Сантагаас ирсэн</h2>
+    <p class="small muted">Таны Санта энд нэрээ нууцлан асуулт эсвэл сэжүүр илгээнэ.</p>
+    <div class="thread" id="t2"></div>
+    <div class="copy"><input id="m2" maxlength="400" placeholder="Хариулт бичих"><button class="btn sm" id="s2">Хариулах</button></div>
+  </div>`}
+
+  <div class="card">
+    <h2>📝 Миний хүслийн жагсаалт</h2>
+    <div id="myWish"></div>
+    <button class="btn block green" id="saveWish">Хадгалах</button>
+  </div>`;
+
+  $('#cp').onclick = () => copy(myLink);
+  $('#story')?.addEventListener('click', () => storyCard(g, me));
+  const ed = wishEditor($('#myWish'), me.wish, g.budget);
+  $('#saveWish').onclick = async () => { try { await api('wish', { gid, token, wish: ed.value() }); toast('Хадгалагдлаа ✓'); } catch (e) { toast(e.message); } };
+  if (!g.drawn) return;
+
+  const mbx = $('#mbx');
+  mbx.onclick = () => {
+    if (mbx.classList.contains('open')) return;
+    mbx.classList.add('open');
+    setTimeout(() => {
+      mbx.classList.add('hide'); $('#rev h2')?.remove(); $('#rev p.muted')?.remove();
+      $('#who').classList.remove('hide'); $('#after').classList.remove('hide');
+      LS.set(revealedKey, true); confetti();
+    }, 1000);
+  };
+
+  const drawThread = (el, t, mineFrom) => {
+    el.innerHTML = t.length ? t.map(m => `<div class="bub ${m.from === mineFrom ? 'mine' : 'theirs'}">
+      ${m.kind === 'hint' ? '<span class="k">🔍 СЭЖҮҮР</span>' : ''}${esc(m.text)}</div>`).join('') : `<p class="small muted">Одоогоор мессеж алга.</p>`;
+    el.scrollTop = el.scrollHeight;
+  };
+  drawThread($('#t1'), d.santaThread, 'santa');
+  drawThread($('#t2'), d.myThread, 'me');
+  let kind = 'msg';
+  $('#kind').onclick = e => { const b = e.target.closest('button'); if (!b) return; kind = b.dataset.k;
+    $('#kind').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('#m1').placeholder = kind === 'hint' ? 'Жишээ: Би чамтай нэг давхарт суудаг 😉' : 'Жишээ: Ямар өнгөнд дуртай вэ?'; };
+  const send = async (inp, to, el, mineFrom, k) => {
+    const text = inp.value.trim(); if (!text) return;
+    try { const r = await api('msg', { gid, token, to, text, kind: k }); inp.value = ''; drawThread(el, r.thread, mineFrom); }
+    catch (e) { toast(e.message); }
+  };
+  $('#s1').onclick = () => send($('#m1'), 'recipient', $('#t1'), 'santa', kind);
+  $('#s2').onclick = () => send($('#m2'), 'santa', $('#t2'), 'me', 'msg');
+  giftSection($('#gs'), g.budget);
+}
+
+/* ---------- Зохион байгуулагчийн самбар ---------- */
+async function pageAdmin(gid, key, flag) {
+  app.innerHTML = `<div class="card"><p class="muted">Ачаалж байна…</p></div>`;
+  let d;
+  const load = async (action = 'admin', extra = {}) => { d = await api(action, { gid, adminKey: key, ...extra }); render(); };
+  try { await load(); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/">Нүүр</a></div>`; return; }
+  remember({ gid, role: 'admin', key, name: d.group.name });
+
+  function render() {
+    const g = d.group, ps = d.participants;
+    const joinLink = link(`/g/${gid}`);
+    const adminLink = link(`/admin/${gid}/${key}`);
+    const myMember = LS.get('ns_groups', []).find(x => x.gid === gid && x.role === 'me');
+    const nameOf = id => ps.find(p => p.id === id)?.name || '?';
+    const seenCount = ps.filter(p => p.seen).length;
+    app.innerHTML = `
+    <div class="card festive">
+      <p class="muted small">Зохион байгуулагчийн самбар · ${g.mode === 'company' ? '🏢 Байгууллага' : '👯 Найзууд'}</p>
+      <h1 style="color:#fff">${esc(g.name)}</h1>
+      <div class="row small">
+        <div>👥 <b>${ps.length}</b> хүн</div>
+        ${g.budget ? `<div>💰 <b>${fmt(g.budget)}</b></div>` : ''}
+        ${g.date ? `<div>📅 <b>${esc(g.date)}</b></div>` : ''}
+        <div>${g.drawn ? `🎉 Сугалаа татсан · ${seenCount}/${ps.length} харсан` : '⏳ Сугалаа татаагүй'}</div>
+      </div>
+    </div>
+
+    ${flag === 'new' ? `<div class="card green"><h3>✅ Бүлэг үүслээ!</h3>
+      <p class="small">Энэ <b>админ линкийг</b> хадгалаарай. Үүгээр л бүлгээ удирдана:</p>
+      <div class="copy"><input readonly value="${esc(adminLink)}"><button class="btn sm green" data-copy="${esc(adminLink)}">Хуулах</button></div></div>` : ''}
+
+    ${!g.drawn ? `
+    <div class="card">
+      <h2>📨 Урилга хуваалцах</h2>
+      <p class="small muted">Энэ линкийг group chat-даа явуулаарай. Хүн бүр өөрөө нэгдэж, хүслээ бичнэ.</p>
+      <div class="copy"><input readonly value="${esc(joinLink)}"><button class="btn sm" id="shareJ">Хуваалцах</button></div>
+      <div class="qr" id="qr"></div>
+      <p class="small muted" style="text-align:center">QR-ыг хэвлээд оффисдоо наавал хүмүүс уншуулаад нэгдэнэ</p>
+    </div>` : ''}
+
+    ${myMember ? `<div class="card green"><b>Та бас оролцогч.</b> <a class="btn sm green" href="#/me/${gid}/${myMember.key}">Миний хуудас →</a></div>` : ''}
+
+    <div class="card">
+      <h2>👥 Оролцогчид (${ps.length})</h2>
+      ${ps.length ? `<ul class="list">${ps.map(p => `<li>
+        <span class="grow"><b>${esc(p.name)}</b>${p.dept ? ` <span class="small muted">· ${esc(p.dept)}</span>` : ''}<br>
+          ${p.hasWish ? '<span class="pill ok">Хүсэл бичсэн</span>' : '<span class="pill">Хүсэлгүй</span>'}
+          ${g.drawn ? (p.seen ? ' <span class="pill ok">Харсан ✓</span>' : ' <span class="pill red">Хараагүй</span>') : ''}</span>
+        ${p.token ? `<button class="btn sm ghost" data-copy="${esc(link(`/me/${gid}/${p.token}`))}">🔗 Линк</button>` : ''}
+        ${!g.drawn ? `<button class="x" data-rm="${p.id}" aria-label="Хасах">✕</button>` : ''}
+      </li>`).join('')}</ul>` : `<p class="muted">Хараахан хүн нэгдээгүй байна.</p>`}
+      ${ps.some(p => p.token) ? `<p class="small muted" style="margin-top:8px">🔗 Таны нэмсэн хүмүүсийн хувийн линкийг тус бүрд нь илгээгээрэй. Өөрөө нэгдсэн хүмүүсийн линк нууцлалын үүднээс танд харагдахгүй.</p>` : ''}
+    </div>
+
+    ${!g.drawn ? `
+    <div class="card">
+      <h2>📋 Нэрсийг нэг дор нэмэх</h2>
+      <p class="small muted">Мөр бүрт нэг хүн. Хэлтэстэй бол таслалаар зааглана: <i>Болд, Маркетинг</i>. Excel-ээс 2 баганыг шууд хуулж болно.</p>
+      <textarea id="bulk" placeholder="Болд, Маркетинг&#10;Сараа, Санхүү&#10;Тэмүүлэн"></textarea>
+      <button class="btn ghost block" id="bulkBtn" style="margin-top:8px">Нэмэх</button>
+    </div>
+
+    <div class="card">
+      <h2>🚫 Хориглолт</h2>
+      <p class="small muted">Хосууд эсвэл гэр бүлийнхэн бие биеэ сугалахгүй байхаар тохируулж болно.</p>
+      ${ps.length >= 2 ? `<div class="row">
+        <select id="ex1">${ps.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
+        <select id="ex2">${ps.map((p, i) => `<option value="${p.id}" ${i === 1 ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>
+      </div><button class="btn ghost sm" id="exAdd" style="margin-top:8px">+ Хориглолт нэмэх</button>` : '<p class="small">2-оос дээш хүн нэгдсэний дараа тохируулна.</p>'}
+      ${g.exclusions.length ? `<ul class="list" style="margin-top:8px">${g.exclusions.map((e, i) => `<li><span class="grow">${esc(nameOf(e[0]))} ↔ ${esc(nameOf(e[1]))}</span><button class="x" data-exrm="${i}">✕</button></li>`).join('')}</ul>` : ''}
+      <label class="chk"><input type="checkbox" id="sameDept" ${g.sameDeptBlocked ? 'checked' : ''}> Нэг хэлтсийнхэн бие биеэ сугалахгүй</label>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <h2>🎲 Сугалаа татах</h2>
+      <p class="small muted">Хүн бүр зөвхөн өөрийн хүнийг харна. Та ч гэсэн хэн хэнийг сугалсныг харахгүй. Сугалааны дараа шинэ хүн нэмэх боломжгүй.</p>
+      <div class="err" id="derr"></div>
+      <button class="btn block" id="drawBtn" ${ps.length < 3 ? 'disabled' : ''}>${ps.length < 3 ? 'Дор хаяж 3 хүн хэрэгтэй' : `${ps.length} хүнээр сугалаа татах 🎅`}</button>
+    </div>` : `
+    <div class="card">
+      <h2>🎉 Сугалаа татагдлаа</h2>
+      <p class="small">Хүн бүр хувийн линкээрээ орж хэнд бэлэг өгөхөө харна. Хараагүй хүмүүст сануулаарай.</p>
+      <button class="btn ghost sm" id="undraw">↩︎ Сугалааг цуцалж дахин татах</button>
+      <div id="undrawConfirm" class="hide note" style="margin-top:10px">Сугалаа болон бүх нууц мессеж устна. Итгэлтэй байна уу?
+        <div class="row" style="margin-top:8px"><button class="btn sm" id="undrawYes">Тийм, цуцлах</button><button class="btn sm ghost" id="undrawNo">Болих</button></div></div>
+    </div>`}
+
+    <div class="card">
+      <h2>⚙️ Тохиргоо</h2>
+      <label>Бүлгийн нэр</label><input id="sName" value="${esc(g.name)}" maxlength="60">
+      <div class="row">
+        <div><label>Төсөв (₮)</label><input id="sBudget" type="number" value="${g.budget || ''}"></div>
+        <div><label>Өдөр</label><input id="sDate" type="date" value="${esc(g.date)}"></div>
+      </div>
+      <label>Нэмэлт мэдээлэл</label><input id="sNote" value="${esc(g.note)}" maxlength="300">
+      <button class="btn green sm" id="sSave" style="margin-top:10px">Хадгалах</button>
+      <p class="small muted" style="margin-top:12px">Админ линк: <a href="#" data-copy="${esc(adminLink)}">хуулах</a></p>
+    </div>`;
+
+    app.querySelectorAll('[data-copy]').forEach(b => b.onclick = e => { e.preventDefault(); copy(b.dataset.copy); });
+    if (!g.drawn) {
+      try { new QRCode($('#qr'), { text: joinLink, width: 160, height: 160, colorDark: '#9e2230' }); } catch {}
+      $('#shareJ').onclick = () => share(`🎅 "${g.name}" Нууц Санта-д нэгдээрэй!`, joinLink);
+      app.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => load('remove', { pid: b.dataset.rm }).catch(e => toast(e.message)));
+      $('#bulkBtn').onclick = () => load('bulkAdd', { text: $('#bulk').value }).then(() => toast('Нэмэгдлээ ✓')).catch(e => toast(e.message));
+      $('#exAdd')?.addEventListener('click', () => {
+        const a = $('#ex1').value, b = $('#ex2').value; if (a === b) { toast('Өөр 2 хүн сонгоно уу'); return; }
+        load('settings', { exclusions: [...g.exclusions, [a, b]] }).catch(e => toast(e.message));
+      });
+      app.querySelectorAll('[data-exrm]').forEach(b => b.onclick = () => load('settings', { exclusions: g.exclusions.filter((_, i) => i !== +b.dataset.exrm) }));
+      $('#sameDept').onchange = e => load('settings', { sameDeptBlocked: e.target.checked });
+      $('#drawBtn').onclick = async () => {
+        $('#drawBtn').disabled = true; $('#derr').textContent = '';
+        try { await load('draw'); confetti(); toast('Сугалаа татагдлаа 🎉'); } catch (e) { $('#derr').textContent = e.message; $('#drawBtn').disabled = false; }
+      };
+    } else {
+      $('#undraw').onclick = () => $('#undrawConfirm').classList.remove('hide');
+      $('#undrawNo').onclick = () => $('#undrawConfirm').classList.add('hide');
+      $('#undrawYes').onclick = () => load('undraw').then(() => toast('Цуцлагдлаа')).catch(e => toast(e.message));
+    }
+    $('#sSave').onclick = () => load('settings', { name: $('#sName').value, budget: $('#sBudget').value, date: $('#sDate').value, note: $('#sNote').value })
+      .then(() => toast('Хадгалагдлаа ✓')).catch(e => toast(e.message));
+  }
+}
+
+/* ================= Конфетти ================= */
+function confetti() {
+  const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:98';
+  c.width = innerWidth; c.height = innerHeight; document.body.appendChild(c);
+  const x = c.getContext('2d'), cols = ['#c8323c', '#2f6b4f', '#e3a83b', '#f6dfe0', '#fff'];
+  const ps = Array.from({ length: 120 }, () => ({ x: c.width / 2, y: c.height / 3, vx: (Math.random() - .5) * 14, vy: Math.random() * -12 - 2, s: 4 + Math.random() * 6, c: cols[Math.floor(Math.random() * 5)], r: Math.random() * 6 }));
+  let f = 0; (function tick() {
+    x.clearRect(0, 0, c.width, c.height);
+    ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .35; p.r += .1; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); x.restore(); });
+    if (++f < 140) requestAnimationFrame(tick); else c.remove();
+  })();
+}
+
+/* ================= Instagram story зураг ================= */
+async function storyCard(g, me) {
+  await document.fonts.load('80px Lobster'); await document.fonts.load('800 40px Nunito');
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1920; const x = c.getContext('2d');
+  const grd = x.createLinearGradient(0, 0, 1080, 1920); grd.addColorStop(0, '#c8323c'); grd.addColorStop(1, '#7d1824');
+  x.fillStyle = grd; x.fillRect(0, 0, 1080, 1920);
+  x.fillStyle = 'rgba(255,255,255,.18)';
+  for (let i = 0; i < 90; i++) { x.beginPath(); x.arc(Math.random() * 1080, Math.random() * 1920, 2 + Math.random() * 7, 0, 7); x.fill(); }
+  x.textAlign = 'center'; x.fillStyle = '#fff';
+  x.font = '260px serif'; x.fillText('🎅', 540, 700);
+  x.font = '120px Lobster'; x.fillText('Нууц Санта', 540, 900);
+  x.font = '800 54px Nunito'; x.fillStyle = '#ffe9c2';
+  x.fillText('Би Нууц Санта-д нэгдлээ!', 540, 1010);
+  x.fillStyle = '#fff'; x.font = '700 46px Nunito';
+  const name = g.name.length > 28 ? g.name.slice(0, 27) + '…' : g.name;
+  x.fillText('“' + name + '”', 540, 1100);
+  if (g.date) { x.font = '600 40px Nunito'; x.fillText('🎁 ' + g.date, 540, 1180); }
+  x.fillStyle = '#fffdf9'; roundRect(x, 190, 1420, 700, 150, 75); x.fill();
+  x.fillStyle = '#9e2230'; x.font = '800 42px Nunito'; x.fillText('Чи ч бас бүлгээ үүсгээрэй 👉', 540, 1510);
+  x.fillStyle = 'rgba(255,255,255,.8)'; x.font = '600 36px Nunito'; x.fillText(location.host, 540, 1700);
+  c.toBlob(async blob => {
+    const file = new File([blob], 'nuuts-santa.png', { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return; } catch {} }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'nuuts-santa.png'; a.click();
+    toast('Зураг татагдлаа — Story-доо оруулаарай 📸');
+  });
+}
+function roundRect(x, X, Y, w, h, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); }
+
+router();
+</script>
+</body>
+</html>
