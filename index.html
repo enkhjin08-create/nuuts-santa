@@ -121,6 +121,16 @@ textarea{min-height:90px;resize:vertical}
 footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
 .qr{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:12px;width:max-content;margin:10px auto}
 .hide{display:none!important}
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.day{flex:none;width:92px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:8px;text-align:center;font-size:12px;scroll-snap-align:center}
+.day b{display:block;font-size:13px}
+.day .t{display:block;min-height:32px;line-height:1.25;margin:4px 0}
+.day.today{border-color:var(--red);box-shadow:0 0 0 3px var(--pink)}
+.day.done{background:var(--green-l);border-color:#cfe3d6}
+.day.past:not(.done){opacity:.6}
+.theme{font-size:22px;font-weight:800;margin:4px 0 10px}
+.bigreveal{text-align:center}
+.bigreveal .who{font-size:52px}
 button{font-family:Nunito,system-ui,sans-serif}
 .mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 </style>
@@ -185,6 +195,19 @@ $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeM
     f.style.opacity = .4 + Math.random() * .5; s.appendChild(f);
   }
 })();
+
+/* ================= Олон өдрийн туслах ================= */
+const todayKey = () => new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD, хэрэглэгчийн цагийн бүсээр
+const themeFor = (g, i) => g.themes?.length ? g.themes[i % g.themes.length] : '🎁 Чөлөөт сэдэв';
+const shortDate = d => { const [, m, dd] = d.split('-'); return `${+m}/${+dd}`; };
+const WD = ['Ня', 'Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя'];
+const wdOf = d => WD[new Date(d + 'T00:00:00Z').getUTCDay()];
+function dayStrip(g, marks = {}) {
+  const t = todayKey();
+  return `<div class="days">${g.days.map((d, i) => `<div class="day ${d === t ? 'today' : ''} ${marks[d] ? 'done' : ''} ${d < t ? 'past' : ''}" ${d === t ? 'data-today' : ''}>
+    <b>${i + 1}-р өдөр</b><span class="muted">${shortDate(d)} ${wdOf(d)}</span>
+    <span class="t">${esc(themeFor(g, i))}</span>${marks[d] ? '✅' : d < t ? '—' : '🎁'}</div>`).join('')}</div>`;
+}
 
 /* ================= Бэлгийн каталог ================= */
 let GIFTS = null;
@@ -267,6 +290,18 @@ function pageHome() {
     </div>
     <label>Нэмэлт мэдээлэл <span class="muted">(заавал биш)</span></label>
     <input id="note" placeholder="Жишээ: 12/27-нд оффис дээр, 18:00 цагт" maxlength="300">
+    <label class="chk"><input type="checkbox" id="multi"> <span>📅 <b>Олон өдрийн горим</b><br><span class="small muted">Санта нэг хүндээ өдөр бүр жижиг бэлэг өгнө. Сүүлийн өдөр бүгд ил болж, хүлээн авагч өөрийн Сантад том бэлэг буцааж өгнө.</span></span></label>
+    <div id="multiBox" class="hide">
+      <div class="row">
+        <div><label>Эхлэх өдөр</label><input id="startDate" type="date"></div>
+        <div><label>Дуусах өдөр</label><input id="endDate" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>Өдрийн бэлгийн төсөв (₮)</label><input id="dailyBudget" type="number" inputmode="numeric" placeholder="5000" step="1000"></div>
+        <div style="display:flex;align-items:flex-end"><label class="chk" style="margin-bottom:12px"><input type="checkbox" id="workdays" checked> Зөвхөн ажлын өдрүүд</label></div>
+      </div>
+      <p class="small muted">Дээрх "Бэлгийн төсөв" нь сүүлийн өдрийн том бэлгийн төсөв болно. "Бэлэг солилцох өдөр" нь ил болох баярын өдөр.</p>
+    </div>
     <label class="chk"><input type="checkbox" id="joinMe" checked> Би өөрөө ч бас оролцоно</label>
     <div id="orgBox"><label>Таны нэр</label><input id="orgName" maxlength="40" placeholder="Нэр"></div>
     <div id="deptBox" class="hide">
@@ -288,6 +323,7 @@ function pageHome() {
     if (mode === 'company') { $('#joinMe').checked = false; $('#orgBox').classList.add('hide'); }
   };
   $('#joinMe').onchange = e => $('#orgBox').classList.toggle('hide', !e.target.checked);
+  $('#multi').onchange = e => $('#multiBox').classList.toggle('hide', !e.target.checked);
   $('#create').onclick = async () => {
     const btn = $('#create'); $('#err').textContent = '';
     const joinAsMember = $('#joinMe').checked;
@@ -297,6 +333,8 @@ function pageHome() {
       const d = await api('create', {
         name: $('#name').value, mode, budget: $('#budget').value, date: $('#date').value, note: $('#note').value,
         sameDeptBlocked: $('#sameDept').checked, joinAsMember, organizerName: $('#orgName').value,
+        multiDay: $('#multi').checked, startDate: $('#startDate').value, endDate: $('#endDate').value,
+        dailyBudget: $('#dailyBudget').value, workdaysOnly: $('#workdays').checked,
       });
       const gname = $('#name').value.trim();
       remember({ gid: d.gid, role: 'admin', key: d.adminKey, name: gname });
@@ -415,6 +453,10 @@ async function pageMe(gid, token, flag) {
   let d;
   try { d = await api('me', { gid, token }); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/">Нүүр</a></div>`; return; }
   const { group: g, me, recipient } = d;
+  const multi = g.multiDay && d.multi;
+  const tk = todayKey();
+  const tIdx = g.days?.indexOf(tk) ?? -1;
+  const inPeriod = tIdx >= 0;
   remember({ gid, role: 'me', key: token, name: g.name });
   const myLink = link(`/me/${gid}/${token}`);
   const revealedKey = `ns_rev_${gid}_${token}`;
@@ -457,7 +499,35 @@ async function pageMe(gid, token, flag) {
       </div>
     </div>
   </div>
+  ${multi && g.revealed && d.multi.mySanta ? `
+  <div class="card festive bigreveal">
+    <p class="muted">🎉 Бүгд ил боллоо! Таны Санта бол…</p>
+    <div class="who" style="color:#fff">${esc(d.multi.mySanta.name)}</div>
+    ${d.multi.mySanta.dept ? `<p class="muted">${esc(d.multi.mySanta.dept)}</p>` : ''}
+    <p>${d.multi.myGuess ? (d.multi.guessedRight ? '🎯 Та зөв таалаа!' : '🙈 Та өөр хүн гэж таасан байсан') : ''}</p>
+    <p class="small">Танд ${Object.keys(d.multi.received).length} өдөр бэлэг өгсөн. Одоо түүнд <b>том бэлгээ</b> өгөх ээлж ирлээ 🎁${g.budget ? ` (төсөв ${fmt(g.budget)})` : ''}</p>
+  </div>
+  <div class="card">
+    <h2>🎁 ${esc(d.multi.mySanta.name)}-ийн хүсэл</h2>
+    ${wishView(d.multi.mySanta.wish)}
+  </div>
+  <div class="card">
+    <h2>✨ Том бэлгийн санаа</h2>
+    <div id="gsBig"></div>
+  </div>
+  ${d.multi.leaderboard?.length ? `<div class="card"><h3>🎯 Сантагаа зөв таасан хүмүүс</h3><div class="names">${d.multi.leaderboard.map(n => `<span>${esc(n)}</span>`).join('')}</div></div>` : ''}` : ''}
+
   <div id="after" class="${revealed ? '' : 'hide'}">
+    ${multi ? `
+    <div class="card">
+      <h2>📅 Өдөр бүрийн бэлэг</h2>
+      <p class="small muted">${esc(recipient?.name)}-д өдөр бүр жижиг бэлэг өгнө${g.dailyBudget ? ` (≈${fmt(g.dailyBudget)})` : ''}. Сэдвийг нь дагавал илүү хөгжилтэй.</p>
+      ${inPeriod ? `<p class="small" style="margin:8px 0 0">Өнөөдрийн сэдэв:</p><div class="theme">${esc(themeFor(g, tIdx))}</div>
+        <button class="btn block ${d.multi.myGave[tk] ? 'green' : ''}" id="gaveBtn">${d.multi.myGave[tk] ? '✅ Өнөөдрийн бэлгээ өгсөн' : '🎁 Өнөөдрийн бэлгээ өгсөн гэж тэмдэглэх'}</button>`
+      : g.days.length && tk < g.days[0] ? `<p class="note">⏳ ${shortDate(g.days[0])}-нд эхэлнэ. Бэлгээ урьдчилан бэлдээрэй!</p>`
+      : g.days.length ? `<p class="note">Өдөр бүрийн бэлгийн хугацаа дууслаа. ${g.date ? esc(g.date) + '-нд' : 'Баярын өдөр'} бүгд ил болно 🎉</p>` : `<p class="note">Зохион байгуулагч хугацаагаа тохируулаагүй байна.</p>`}
+      <div style="margin-top:12px">${dayStrip(g, d.multi.myGave)}</div>
+    </div>` : ''}
     <div class="card">
       <h2>🎁 ${esc(recipient?.name)}-ийн хүсэл</h2>
       ${wishView(recipient?.wish)}
@@ -470,16 +540,27 @@ async function pageMe(gid, token, flag) {
       <div class="copy"><input id="m1" maxlength="400" placeholder="Жишээ: Ямар өнгөнд дуртай вэ?"><button class="btn sm" id="s1">Илгээх</button></div>
     </div>
     <div class="card">
-      <h2>✨ ${g.budget ? fmt(g.budget) + '-ийн' : ''} бэлгийн санаа</h2>
+      <h2>✨ ${multi ? (g.dailyBudget ? fmt(g.dailyBudget) + '-ийн жижиг' : 'Жижиг') : (g.budget ? fmt(g.budget) + '-ийн' : '')} бэлгийн санаа</h2>
       <div id="gs"></div>
     </div>
   </div>
   <div class="card">
     <h2>💌 Таны Сантагаас ирсэн</h2>
-    <p class="small muted">Таны Санта энд нэрээ нууцлан асуулт эсвэл сэжүүр илгээнэ.</p>
+    ${multi ? `
+      <p>${d.multi.received[tk] ? '🎁 <b>Санта тань өнөөдрийн бэлгээ өгсөн байна!</b> Ширээгээ шалгаарай 👀' : inPeriod ? '⏳ Өнөөдрийн бэлэг хараахан ирээгүй байна…' : ''}</p>
+      <p class="small muted">Нийт ${Object.keys(d.multi.received).length} өдөр бэлэг авсан</p>
+      ${g.days.length ? dayStrip(g, d.multi.received) : ''}
+      ${d.multi.received[tk] ? `<button class="btn ghost sm" id="thanks">🥰 Сантадаа баярлалаа гэж хэлэх</button>` : ''}` : ''}
+    <p class="small muted" style="margin-top:10px">Таны Санта энд нэрээ нууцлан асуулт эсвэл сэжүүр илгээнэ.</p>
     <div class="thread" id="t2"></div>
     <div class="copy"><input id="m2" maxlength="400" placeholder="Хариулт бичих"><button class="btn sm" id="s2">Хариулах</button></div>
-  </div>`}
+  </div>
+  ${multi && !g.revealed ? `
+  <div class="card">
+    <h2>🕵️ Миний Санта хэн бэ?</h2>
+    <p class="small muted">Сэжүүрээ ашиглаад таагаарай. Баярын өдөр бүгд ил болоход хэн зөв таасан нь гарна.</p>
+    <select id="guess"><option value="">— Сонгох —</option>${d.multi.others.map(o => `<option value="${o.id}" ${o.id === d.multi.myGuess ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
+  </div>` : ''}`}
 
   <div class="card">
     <h2>📝 Миний хүслийн жагсаалт</h2>
@@ -522,14 +603,26 @@ async function pageMe(gid, token, flag) {
   };
   $('#s1').onclick = () => send($('#m1'), 'recipient', $('#t1'), 'santa', kind);
   $('#s2').onclick = () => send($('#m2'), 'santa', $('#t2'), 'me', 'msg');
-  giftSection($('#gs'), g.budget);
+  giftSection($('#gs'), multi ? (g.dailyBudget || 10000) : g.budget);
+  if ($('#gsBig')) giftSection($('#gsBig'), g.budget);
+  $('#gaveBtn')?.addEventListener('click', async () => {
+    try { await api('gave', { gid, token, day: tk, value: !d.multi.myGave[tk] }); if (!d.multi.myGave[tk]) confetti(); pageMe(gid, token); }
+    catch (e) { toast(e.message); }
+  });
+  $('#thanks')?.addEventListener('click', async () => {
+    try { const r = await api('msg', { gid, token, to: 'santa', text: 'Баярлалаа, Санта минь 🥰🎁' }); drawThread($('#t2'), r.thread, 'me'); toast('Илгээлээ 🥰'); }
+    catch (e) { toast(e.message); }
+  });
+  $('#guess')?.addEventListener('change', async e => {
+    try { await api('guess', { gid, token, pid: e.target.value }); toast('Таамаг хадгалагдлаа 🕵️'); } catch (er) { toast(er.message); }
+  });
 }
 
 /* ---------- Зохион байгуулагчийн самбар ---------- */
 async function pageAdmin(gid, key, flag) {
   app.innerHTML = `<div class="card"><p class="muted">Ачаалж байна…</p></div>`;
   let d;
-  const load = async (action = 'admin', extra = {}) => { d = await api(action, { gid, adminKey: key, ...extra }); render(); };
+  const load = async (action = 'admin', extra = {}) => { d = await api(action, { gid, adminKey: key, today: todayKey(), ...extra }); render(); };
   try { await load(); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/">Нүүр</a></div>`; return; }
   remember({ gid, role: 'admin', key, name: d.group.name });
 
@@ -540,6 +633,9 @@ async function pageAdmin(gid, key, flag) {
     const myMember = LS.get('ns_groups', []).find(x => x.gid === gid && x.role === 'me');
     const nameOf = id => ps.find(p => p.id === id)?.name || '?';
     const seenCount = ps.filter(p => p.seen).length;
+    const tk = todayKey(), tIdx = (g.days || []).indexOf(tk);
+    const multiLive = g.multiDay && g.drawn && tIdx >= 0;
+    const gaveToday = ps.filter(p => p.gaveToday).length;
     app.innerHTML = `
     <div class="card festive">
       <p class="muted small">Зохион байгуулагчийн самбар · ${g.mode === 'company' ? '🏢 Байгууллага' : '👯 Найзууд'}</p>
@@ -572,7 +668,9 @@ async function pageAdmin(gid, key, flag) {
       ${ps.length ? `<ul class="list">${ps.map(p => `<li>
         <span class="grow"><b>${esc(p.name)}</b>${p.dept ? ` <span class="small muted">· ${esc(p.dept)}</span>` : ''}<br>
           ${p.hasWish ? '<span class="pill ok">Хүсэл бичсэн</span>' : '<span class="pill">Хүсэлгүй</span>'}
-          ${g.drawn ? (p.seen ? ' <span class="pill ok">Харсан ✓</span>' : ' <span class="pill red">Хараагүй</span>') : ''}</span>
+          ${g.drawn ? (p.seen ? ' <span class="pill ok">Харсан ✓</span>' : ' <span class="pill red">Хараагүй</span>') : ''}
+          ${multiLive ? (p.gaveToday ? ' <span class="pill ok">Өнөөдөр өгсөн 🎁</span>' : ' <span class="pill red">Өнөөдөр өгөөгүй</span>') : ''}
+          ${g.multiDay && g.drawn ? ` <span class="pill">${p.gaveCount} өдөр</span>` : ''}</span>
         ${p.token ? `<button class="btn sm ghost" data-copy="${esc(link(`/me/${gid}/${p.token}`))}">🔗 Линк</button>` : ''}
         ${!g.drawn ? `<button class="x" data-rm="${p.id}" aria-label="Хасах">✕</button>` : ''}
       </li>`).join('')}</ul>` : `<p class="muted">Хараахан хүн нэгдээгүй байна.</p>`}
@@ -605,6 +703,14 @@ async function pageAdmin(gid, key, flag) {
       <button class="btn block" id="drawBtn" ${ps.length < 3 ? 'disabled' : ''}>${ps.length < 3 ? 'Дор хаяж 3 хүн хэрэгтэй' : `${ps.length} хүнээр сугалаа татах 🎅`}</button>
     </div>` : `
     <div class="card">
+      ${g.multiDay ? `
+      <h2>📅 Олон өдрийн явц</h2>
+      ${multiLive ? `<p>Өнөөдөр (${tIdx + 1}-р өдөр): <b>${esc(themeFor(g, tIdx))}</b></p><p><b>${gaveToday}/${ps.length}</b> Санта өнөөдрийн бэлгээ өгсөн</p>` : `<p class="small muted">${g.days.length ? `${shortDate(g.days[0])} – ${shortDate(g.days[g.days.length - 1])}, ${g.days.length} өдөр` : 'Хугацаа тохируулаагүй байна. Доорх тохиргооноос оруулна уу.'}</p>`}
+      ${g.days.length ? dayStrip(g, {}) : ''}
+      <div class="note" style="margin:10px 0">
+        ${g.revealed ? `<b>🎉 Бүгд ил болсон.</b> Хүн бүр өөрийн Сантагаа харж, түүнд том бэлгээ өгнө.<br><button class="btn ghost sm" id="unreveal" style="margin-top:8px">Ил болгохыг буцаах</button>`
+        : `<b>Баярын өдөр</b> энэ товчийг дарахад хүн бүрийн хуудсанд өөрийн Санта нь гарч ирж, хэн зөв таасан нь харагдана. ${ps.filter(p => p.guessed).length}/${ps.length} хүн таамаг өгсөн.<br><button class="btn sm" id="reveal" style="margin-top:8px">🎉 Бүгдийг ил болгох</button>`}
+      </div>` : ''}
       <h2>🎉 Сугалаа татагдлаа</h2>
       <p class="small">Хүн бүр хувийн линкээрээ орж хэнд бэлэг өгөхөө харна. Хараагүй хүмүүст сануулаарай.</p>
       <button class="btn ghost sm" id="undraw">↩︎ Сугалааг цуцалж дахин татах</button>
@@ -620,6 +726,19 @@ async function pageAdmin(gid, key, flag) {
         <div><label>Өдөр</label><input id="sDate" type="date" value="${esc(g.date)}"></div>
       </div>
       <label>Нэмэлт мэдээлэл</label><input id="sNote" value="${esc(g.note)}" maxlength="300">
+      <label class="chk"><input type="checkbox" id="sMulti" ${g.multiDay ? 'checked' : ''}> 📅 Олон өдрийн горим</label>
+      <div id="sMultiBox" class="${g.multiDay ? '' : 'hide'}">
+        <div class="row">
+          <div><label>Эхлэх өдөр</label><input id="sStart" type="date" value="${esc(g.startDate)}"></div>
+          <div><label>Дуусах өдөр</label><input id="sEnd" type="date" value="${esc(g.endDate)}"></div>
+        </div>
+        <div class="row">
+          <div><label>Өдрийн төсөв (₮)</label><input id="sDaily" type="number" value="${g.dailyBudget || ''}"></div>
+          <div style="display:flex;align-items:flex-end"><label class="chk" style="margin-bottom:12px"><input type="checkbox" id="sWork" ${g.workdaysOnly ? 'checked' : ''}> Зөвхөн ажлын өдрүүд</label></div>
+        </div>
+        <label>Өдөр бүрийн сэдэв <span class="muted">(мөр бүрт нэг, дарааллаараа давтагдана)</span></label>
+        <textarea id="sThemes" style="min-height:160px">${esc((g.themes || []).join('\n'))}</textarea>
+      </div>
       <button class="btn green sm" id="sSave" style="margin-top:10px">Хадгалах</button>
       <p class="small muted" style="margin-top:12px">Админ линк: <a href="#" data-copy="${esc(adminLink)}">хуулах</a></p>
     </div>`;
@@ -645,7 +764,12 @@ async function pageAdmin(gid, key, flag) {
       $('#undrawNo').onclick = () => $('#undrawConfirm').classList.add('hide');
       $('#undrawYes').onclick = () => load('undraw').then(() => toast('Цуцлагдлаа')).catch(e => toast(e.message));
     }
-    $('#sSave').onclick = () => load('settings', { name: $('#sName').value, budget: $('#sBudget').value, date: $('#sDate').value, note: $('#sNote').value })
+    $('#sMulti').onchange = e => $('#sMultiBox').classList.toggle('hide', !e.target.checked);
+    $('#reveal')?.addEventListener('click', () => load('reveal').then(() => { confetti(); toast('Бүгд ил боллоо 🎉'); }).catch(e => toast(e.message)));
+    $('#unreveal')?.addEventListener('click', () => load('unreveal').catch(e => toast(e.message)));
+    $('#sSave').onclick = () => load('settings', { name: $('#sName').value, budget: $('#sBudget').value, date: $('#sDate').value, note: $('#sNote').value,
+      multiDay: $('#sMulti').checked, startDate: $('#sStart').value, endDate: $('#sEnd').value, dailyBudget: $('#sDaily').value,
+      workdaysOnly: $('#sWork').checked, themes: $('#sThemes').value.split('\n') })
       .then(() => toast('Хадгалагдлаа ✓')).catch(e => toast(e.message));
   }
 }

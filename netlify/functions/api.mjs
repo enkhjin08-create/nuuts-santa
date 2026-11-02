@@ -42,9 +42,41 @@ async function getMe(s, gid, token) {
   if (!token || !/^[a-z0-9]{10,40}$/.test(token)) return null;
   return s.get(`g/${gid}/p/${token}`, { type: "json" });
 }
+/* ---------- Олон өдрийн горим ----------
+   Санта бүх хугацаанд НЭГ хүндээ өдөр бүр жижиг бэлэг өгнө. Сүүлийн өдөр (байгууллагын
+   шинэ жил дээр) бүгд ил болж, хүлээн авагч өөрийн Сантад ТОМ бэлэг буцааж өгнө. */
+const DEFAULT_THEMES = [
+  "🍫 Амттан", "❤️ Улаан өнгөтэй зүйл", "☕ Өглөөний кофе эсвэл цай", "✍️ Гараар хийсэн зүйл",
+  "🌸 Цэцэг эсвэл ургамал", "😂 Инээдтэй бэлэг", "🧦 Дулаан зүйл", "💌 Урам өгөх захидал",
+  "🐱 Хөөрхөн амьтантай зүйл", "🍊 Жимс", "🎵 Дуртай дуу эсвэл playlist", "✨ Гялалзсан зүйл",
+];
+const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "");
+function dayList(m) {
+  if (!m.multiDay || !isDate(m.startDate) || !isDate(m.endDate)) return [];
+  const out = [];
+  const d = new Date(m.startDate + "T00:00:00Z"), end = new Date(m.endDate + "T00:00:00Z");
+  while (d <= end && out.length < 60) {
+    const wd = d.getUTCDay();
+    if (!(m.workdaysOnly && (wd === 0 || wd === 6))) out.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return out;
+}
+function applyMultiDay(m, b) {
+  if (b.multiDay !== undefined) m.multiDay = !!b.multiDay;
+  if (b.startDate !== undefined) m.startDate = isDate(b.startDate) ? b.startDate : "";
+  if (b.endDate !== undefined) m.endDate = isDate(b.endDate) ? b.endDate : "";
+  if (b.workdaysOnly !== undefined) m.workdaysOnly = !!b.workdaysOnly;
+  if (b.dailyBudget !== undefined) m.dailyBudget = Math.max(0, Math.min(1000000, Number(b.dailyBudget) || 0));
+  if (Array.isArray(b.themes)) m.themes = b.themes.map((t) => clean(t, 60)).filter(Boolean).slice(0, 60);
+  if (!m.themes || !m.themes.length) m.themes = [...DEFAULT_THEMES];
+  if (m.multiDay && m.startDate && m.endDate && m.startDate > m.endDate) throw new Error("Эхлэх өдөр дуусах өдрөөс өмнө байх ёстой");
+}
 const publicGroup = (m, count, names) => ({
   id: m.id, name: m.name, mode: m.mode, budget: m.budget, date: m.date, note: m.note,
   drawn: !!m.drawnAt, count, names,
+  multiDay: !!m.multiDay, startDate: m.startDate || "", endDate: m.endDate || "", workdaysOnly: !!m.workdaysOnly,
+  dailyBudget: m.dailyBudget || 0, themes: m.themes || DEFAULT_THEMES, days: dayList(m), revealed: !!m.revealedAt,
 });
 const cleanWish = (w = {}) => ({
   items: (Array.isArray(w.items) ? w.items : []).slice(0, 6).map((i) => ({
@@ -55,7 +87,7 @@ const cleanWish = (w = {}) => ({
 async function newParticipant(s, gid, { name, dept, wish }, byAdmin = false) {
   const p = {
     id: rid(8), token: rid(16), name: clean(name, 40), dept: clean(dept, 40), byAdmin,
-    wish: cleanWish(wish), joinedAt: Date.now(), assignedTo: null, seenAt: null,
+    wish: cleanWish(wish), joinedAt: Date.now(), assignedTo: null, seenAt: null, gave: {}, guess: null,
   };
   if (!p.name) throw new Error("Нэрээ бичнэ үү");
   await s.setJSON(`g/${gid}/p/${p.token}`, p);
@@ -104,8 +136,9 @@ export default async (req) => {
           budget: Math.max(0, Math.min(10000000, Number(b.budget) || 0)),
           date: clean(b.date, 20), note: clean(b.note, 300),
           sameDeptBlocked: !!b.sameDeptBlocked, exclusions: [],
-          createdAt: Date.now(), drawnAt: null,
+          createdAt: Date.now(), drawnAt: null, revealedAt: null,
         };
+        applyMultiDay(meta, b);
         await s.setJSON(`g/${meta.id}/meta`, meta);
         let me = null;
         if (b.joinAsMember && clean(b.organizerName, 40)) {
@@ -139,11 +172,25 @@ export default async (req) => {
         const m = await getMeta(s, gid);
         const me = m && (await getMe(s, gid, b.token));
         if (!me) return fail("Линк буруу байна", 404);
-        let recipient = null, santaThread = [], myThread = [];
+        let recipient = null, santaThread = [], myThread = [], multi = null;
         if (m.drawnAt && me.assignedTo) {
           const ps = await listParticipants(s, gid);
           const r = ps.find((p) => p.id === me.assignedTo);
           if (r) recipient = { name: r.name, dept: r.dept, wish: r.wish };
+          if (m.multiDay) {
+            const santa = ps.find((p) => p.assignedTo === me.id);
+            multi = {
+              myGave: me.gave || {},                 // би Сантагийн хувьд аль өдрүүдэд өгсөн
+              received: santa?.gave || {},           // миний Санта аль өдрүүдэд өгсөн (хэн болох нь нууц)
+              myGuess: me.guess || null,
+              others: ps.filter((p) => p.id !== me.id).map((p) => ({ id: p.id, name: p.name })),
+            };
+            if (m.revealedAt && santa) {
+              multi.mySanta = { name: santa.name, dept: santa.dept, wish: santa.wish };
+              multi.guessedRight = me.guess === santa.id;
+              multi.leaderboard = ps.filter((p) => p.guess && ps.find((x) => x.assignedTo === p.id)?.id === p.guess).map((p) => p.name);
+            }
+          }
           if (!me.seenAt) { me.seenAt = Date.now(); await s.setJSON(`g/${gid}/p/${me.token}`, me); }
           santaThread = (await s.get(`g/${gid}/t/${me.assignedTo}`, { type: "json" })) || [];
           myThread = (await s.get(`g/${gid}/t/${me.id}`, { type: "json" })) || [];
@@ -151,7 +198,7 @@ export default async (req) => {
         return json({
           group: publicGroup(m, 0, []),
           me: { name: me.name, dept: me.dept, wish: me.wish },
-          recipient, santaThread, myThread,
+          recipient, santaThread, myThread, multi,
         });
       }
 
@@ -182,13 +229,36 @@ export default async (req) => {
         return json({ ok: true, thread: t });
       }
 
+      case "gave": {
+        const m = await getMeta(s, gid);
+        const me = m && (await getMe(s, gid, b.token));
+        if (!me || !m.drawnAt || !m.multiDay) return fail("Линк буруу байна", 404);
+        if (!dayList(m).includes(b.day)) return fail("Энэ өдөр хугацаанд багтахгүй");
+        me.gave = me.gave || {};
+        if (b.value) me.gave[b.day] = Date.now(); else delete me.gave[b.day];
+        await s.setJSON(`g/${gid}/p/${me.token}`, me);
+        return json({ ok: true, gave: me.gave });
+      }
+
+      case "guess": {
+        const m = await getMeta(s, gid);
+        const me = m && (await getMe(s, gid, b.token));
+        if (!me || !m.drawnAt || !m.multiDay) return fail("Линк буруу байна", 404);
+        if (m.revealedAt) return fail("Аль хэдийн ил болсон");
+        me.guess = b.pid && b.pid !== me.id ? clean(b.pid, 20) : null;
+        await s.setJSON(`g/${gid}/p/${me.token}`, me);
+        return json({ ok: true });
+      }
+
       /* ---------- Зохион байгуулагч ---------- */
       case "admin":
       case "bulkAdd":
       case "remove":
       case "settings":
       case "draw":
-      case "undraw": {
+      case "undraw":
+      case "reveal":
+      case "unreveal": {
         const m = await getMeta(s, gid);
         if (!m || !b.adminKey || b.adminKey !== m.adminKey) return fail("Админ линк буруу байна", 403);
         let ps = await listParticipants(s, gid);
@@ -219,6 +289,7 @@ export default async (req) => {
           if (b.date !== undefined) m.date = clean(b.date, 20);
           if (b.note !== undefined) m.note = clean(b.note, 300);
           if (b.sameDeptBlocked !== undefined) m.sameDeptBlocked = !!b.sameDeptBlocked;
+          applyMultiDay(m, b);
           if (Array.isArray(b.exclusions)) {
             const ids = new Set(ps.map((p) => p.id));
             m.exclusions = b.exclusions.filter((e) => Array.isArray(e) && ids.has(e[0]) && ids.has(e[1]) && e[0] !== e[1]).slice(0, 200);
@@ -236,13 +307,19 @@ export default async (req) => {
           ps = await listParticipants(s, gid);
         }
         if (b.action === "undraw") {
-          await Promise.all(ps.map((p) => s.setJSON(`g/${gid}/p/${p.token}`, { ...p, assignedTo: null, seenAt: null })));
+          await Promise.all(ps.map((p) => s.setJSON(`g/${gid}/p/${p.token}`, { ...p, assignedTo: null, seenAt: null, gave: {}, guess: null })));
           const { blobs } = await s.list({ prefix: `g/${gid}/t/` });
           await Promise.all(blobs.map((x) => s.delete(x.key)));
-          m.drawnAt = null;
+          m.drawnAt = null; m.revealedAt = null;
           await s.setJSON(`g/${gid}/meta`, m);
           ps = await listParticipants(s, gid);
         }
+        if (b.action === "reveal" || b.action === "unreveal") {
+          if (!m.drawnAt) return fail("Эхлээд сугалаа татна уу");
+          m.revealedAt = b.action === "reveal" ? Date.now() : null;
+          await s.setJSON(`g/${gid}/meta`, m);
+        }
+        const today = isDate(b.today) ? b.today : null;
         // Админ хэн хэнийг сугалсныг ХАРАХГҮЙ — зөвхөн линк, харсан эсэх
         return json({
           group: { ...publicGroup(m, ps.length, []), sameDeptBlocked: m.sameDeptBlocked, exclusions: m.exclusions },
@@ -251,6 +328,7 @@ export default async (req) => {
             // Өөрөө нэгдсэн хүний линкийг админд харуулахгүй (нууцлал). Админ нэмсэн хүний линкийг тарааж өгөх ёстой тул харуулна.
             token: p.byAdmin ? p.token : null,
             hasWish: !!(p.wish?.items?.length || p.wish?.likes), seen: !!p.seenAt,
+            gaveToday: today ? !!p.gave?.[today] : false, gaveCount: Object.keys(p.gave || {}).length, guessed: !!p.guess,
           })),
         });
       }
