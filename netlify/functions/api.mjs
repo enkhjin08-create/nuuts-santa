@@ -27,6 +27,22 @@ const rid = (n = 10) => {
   const bytes = crypto.getRandomValues(new Uint8Array(n));
   return Array.from(bytes, (b) => a[b % a.length]).join("");
 };
+/* PIN-ийг шууд хадгалахгүй, бүлгийн ID-тай хольж hash хийнэ */
+async function hashPin(gid, pin) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`ns:${gid}:${pin}`));
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+const cleanPin = (p) => { const d = String(p ?? "").replace(/\D/g, ""); return d.length >= 4 && d.length <= 8 ? d : null; };
+/* Буруу PIN-ийг хязгаарлах: нэг бүлэгт цагт 10 удаа */
+async function checkLock(s, m) {
+  const f = m.fails || { n: 0, at: 0 };
+  if (Date.now() - f.at > 3600e3) { m.fails = { n: 0, at: Date.now() }; return true; }
+  return f.n < 10;
+}
+async function addFail(s, m) {
+  m.fails = m.fails && Date.now() - m.fails.at <= 3600e3 ? { n: m.fails.n + 1, at: m.fails.at } : { n: 1, at: Date.now() };
+  await s.setJSON(`g/${m.id}/meta`, m);
+}
 const clean = (s, max = 200) => String(s ?? "").replace(/[<>]/g, "").trim().slice(0, max);
 
 async function getMeta(s, gid) {
@@ -84,12 +100,15 @@ const cleanWish = (w = {}) => ({
   })).filter((i) => i.text),
   likes: clean(w.likes, 300), dislikes: clean(w.dislikes, 300), size: clean(w.size, 100),
 });
-async function newParticipant(s, gid, { name, dept, wish }, byAdmin = false) {
+async function newParticipant(s, gid, { name, dept, wish, pin }, byAdmin = false) {
   const p = {
     id: rid(8), token: rid(16), name: clean(name, 40), dept: clean(dept, 40), byAdmin,
     wish: cleanWish(wish), joinedAt: Date.now(), assignedTo: null, seenAt: null, gave: {}, guess: null,
   };
   if (!p.name) throw new Error("Нэрээ бичнэ үү");
+  const cp = cleanPin(pin);
+  if (pin && !cp) throw new Error("PIN 4–8 оронтой тоо байна");
+  if (cp) p.pinHash = await hashPin(gid, cp);
   await s.setJSON(`g/${gid}/p/${p.token}`, p);
   return p;
 }
@@ -130,6 +149,8 @@ export default async (req) => {
       case "create": {
         const name = clean(b.name, 60);
         if (!name) return fail("Бүлгийн нэрээ бичнэ үү");
+        const adminPin = cleanPin(b.adminPin);
+        if (!adminPin) return fail("Админ PIN 4–8 оронтой тоо байх ёстой");
         const meta = {
           id: rid(6), adminKey: rid(16), name,
           mode: b.mode === "company" ? "company" : "friends",
@@ -139,10 +160,11 @@ export default async (req) => {
           createdAt: Date.now(), drawnAt: null, revealedAt: null,
         };
         applyMultiDay(meta, b);
+        meta.adminPinHash = await hashPin(meta.id, adminPin);
         await s.setJSON(`g/${meta.id}/meta`, meta);
         let me = null;
         if (b.joinAsMember && clean(b.organizerName, 40)) {
-          me = await newParticipant(s, meta.id, { name: b.organizerName, dept: b.organizerDept });
+          me = await newParticipant(s, meta.id, { name: b.organizerName, dept: b.organizerDept, pin: adminPin });
         }
         return json({ gid: meta.id, adminKey: meta.adminKey, token: me?.token || null });
       }
@@ -227,6 +249,25 @@ export default async (req) => {
         t.push({ from, text, kind: b.kind === "hint" ? "hint" : "msg", at: Date.now() });
         await s.setJSON(key, t);
         return json({ ok: true, thread: t });
+      }
+
+      /* ---------- Линк сэргээх ---------- */
+      case "recoverAdmin":
+      case "recoverMe": {
+        const m = await getMeta(s, gid);
+        if (!m) return fail("Ийм кодтой бүлэг олдсонгүй", 404);
+        if (!(await checkLock(s, m))) return fail("Хэт олон удаа буруу оролдлоо. 1 цагийн дараа дахин оролдоно уу.", 429);
+        const pin = cleanPin(b.pin);
+        const h = pin ? await hashPin(gid, pin) : "-";
+        if (b.action === "recoverAdmin") {
+          if (!m.adminPinHash) return fail("Энэ бүлэгт PIN тохируулаагүй байна");
+          if (h !== m.adminPinHash) { await addFail(s, m); return fail("PIN буруу байна"); }
+          return json({ adminKey: m.adminKey, name: m.name });
+        }
+        const nm = clean(b.name, 40).toLowerCase();
+        const p = (await listParticipants(s, gid)).find((x) => x.name.toLowerCase() === nm);
+        if (!p || !p.pinHash || p.pinHash !== h) { await addFail(s, m); return fail("Нэр эсвэл PIN буруу байна. Зохион байгуулагч таныг нэмсэн бол линкээ түүнээс аваарай."); }
+        return json({ token: p.token, name: m.name });
       }
 
       case "gave": {

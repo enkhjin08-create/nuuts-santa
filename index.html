@@ -254,7 +254,7 @@ async function giftSection(el, budget, opts = {}) {
 
 /* ================= Хуудсууд ================= */
 const routes = {
-  '': pageHome, 'mine': pageMine, 'g': pageJoin, 'me': pageMe, 'admin': pageAdmin,
+  '': pageHome, 'mine': pageMine, 'recover': pageRecover, 'g': pageJoin, 'me': pageMe, 'admin': pageAdmin,
 };
 function router() {
   const [r, ...args] = location.hash.replace(/^#\/?/, '').split('/');
@@ -311,9 +311,13 @@ function pageHome() {
       <label class="chk"><input type="checkbox" id="sameDept"> Нэг хэлтсийнхэн бие биеэ сугалахгүй</label>
       <p class="small muted">Байгууллагын горимд ажилчдын нэрсийг Excel-ээс хуулж нэг дор оруулах боломжтой.</p>
     </div>
+    <label>🔑 Админ PIN <span class="muted">(4–8 оронтой тоо)</span></label>
+    <input id="adminPin" type="password" inputmode="numeric" maxlength="8" placeholder="Жишээ: 2580" autocomplete="new-password">
+    <p class="small muted" style="margin-top:6px">Линкээ алдвал бүлгийн код + энэ PIN-ээр сэргээнэ. Мартахгүй тоо сонгоорой.</p>
     <div class="err" id="err"></div>
     <button class="btn block" id="create">Бүлэг үүсгэх 🎄</button>
   </div>
+  <p style="text-align:center"><a href="#/recover">🔑 Линкээ алдсан уу? Сэргээх</a></p>
   <div class="card green">
     <h3>🎁 Төсөвтөө тохирсон бэлэг олоход тусална</h3>
     <p class="small">Таны Санта хүслийн жагсаалтыг чинь харна. Бэлгийн санаа хэрэгтэй бол <b>Зөвхөн түүнд</b>, <b>Meowie</b>, <b>CuteCups</b>-ийн бүтээгдэхүүнээс санал болгоно. Заавал тэндээс авах шаардлагагүй.</p>
@@ -338,11 +342,12 @@ function pageHome() {
     const btn = $('#create'); $('#err').textContent = '';
     const joinAsMember = $('#joinMe').checked;
     if (joinAsMember && !$('#orgName').value.trim()) { $('#err').textContent = 'Нэрээ бичнэ үү'; return; }
+    if (!/^\d{4,8}$/.test($('#adminPin').value)) { $('#err').textContent = 'Админ PIN 4–8 оронтой тоо байна'; return; }
     btn.disabled = true;
     try {
       const d = await api('create', {
         name: $('#name').value, mode, budget: $('#budget').value, date: $('#date').value || ($('#multi').checked ? $('#endDate').value : ''), note: $('#note').value,
-        sameDeptBlocked: $('#sameDept').checked, joinAsMember, organizerName: $('#orgName').value,
+        sameDeptBlocked: $('#sameDept').checked, joinAsMember, organizerName: $('#orgName').value, adminPin: $('#adminPin').value,
         multiDay: $('#multi').checked, startDate: $('#startDate').value, endDate: $('#endDate').value,
         dailyBudget: $('#dailyBudget').value, workdaysOnly: $('#workdays').checked,
       });
@@ -362,7 +367,34 @@ function pageMine() {
     ${all.length ? `<ul class="list">${all.map(g => `<li>
       <span class="grow"><b>${esc(g.name || g.gid)}</b><br><span class="small muted">${g.role === 'admin' ? 'Зохион байгуулагч' : 'Оролцогч'}</span></span>
       <a class="btn sm ${g.role === 'admin' ? 'ghost' : ''}" href="#/${g.role}/${g.gid}/${g.key}">Нээх</a></li>`).join('')}</ul>`
-      : `<p>Одоогоор бүлэг алга.</p><a class="btn" href="#/">Бүлэг үүсгэх</a>`}</div>`;
+      : `<p>Одоогоор бүлэг алга.</p><a class="btn" href="#/">Бүлэг үүсгэх</a>`}
+    <p style="margin-top:14px"><a href="#/recover">🔑 Энд байхгүй бүлгийн линкээ сэргээх</a></p></div>`;
+}
+
+/* ---------- Линк сэргээх ---------- */
+function pageRecover(gid = '') {
+  let role = 'me';
+  app.innerHTML = `<div class="card">
+    <h2>🔑 Линк сэргээх</h2>
+    <div class="seg" id="rrole"><button data-r="me" class="on">🎁 Оролцогч</button><button data-r="admin">👑 Зохион байгуулагч</button></div>
+    <label>Бүлгийн код</label>
+    <input id="rgid" value="${esc(gid)}" placeholder="Код эсвэл урилгын линкээ буулгана уу" maxlength="300" autocapitalize="off">
+    <p class="small muted" style="margin-top:6px">Жишээ нь урилгын линк <i>…/#/g/<b>ab12cd</b></i> бол код нь <b>ab12cd</b>.</p>
+    <div id="rnameBox"><label>Таны нэр</label><input id="rname" maxlength="40" placeholder="Нэгдэхдээ бичсэн нэр"></div>
+    <label>PIN</label><input id="rpin" type="password" inputmode="numeric" maxlength="8">
+    <div class="err" id="err"></div>
+    <button class="btn block" id="rgo">Сэргээх</button>
+    <p class="small muted" style="margin-top:12px">Зохион байгуулагч таныг нэрсийн жагсаалтаар нэмсэн бол линкээ түүнээс дахин аваарай.</p>
+  </div>`;
+  $('#rrole').onclick = e => { const b = e.target.closest('button'); if (!b) return; role = b.dataset.r;
+    $('#rrole').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('#rnameBox').classList.toggle('hide', role === 'admin'); };
+  $('#rgo').onclick = async () => {
+    const g = $('#rgid').value.trim().toLowerCase().replace(/.*\/g\//, ''); $('#err').textContent = '';
+    try {
+      if (role === 'admin') { const d = await api('recoverAdmin', { gid: g, pin: $('#rpin').value }); remember({ gid: g, role: 'admin', key: d.adminKey, name: d.name }); location.hash = `#/admin/${g}/${d.adminKey}`; }
+      else { const d = await api('recoverMe', { gid: g, name: $('#rname').value, pin: $('#rpin').value }); remember({ gid: g, role: 'me', key: d.token, name: d.name }); location.hash = `#/me/${g}/${d.token}`; }
+    } catch (e) { $('#err').textContent = e.message; }
+  };
 }
 
 /* ---------- Нэгдэх ---------- */
@@ -389,16 +421,20 @@ async function pageJoin(gid) {
     <label>Таны нэр</label><input id="jname" maxlength="40" placeholder="Бусад таныг таних нэр">
     ${g.mode === 'company' ? `<label>Хэлтэс <span class="muted">(заавал биш)</span></label><input id="jdept" maxlength="40">` : ''}
     <div id="wishEd"></div>
+    <label>🔑 Сэргээх PIN <span class="muted">(4–8 оронтой тоо)</span></label>
+    <input id="jpin" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" placeholder="Линкээ алдвал нэр + PIN-ээр сэргээнэ">
     <div class="err" id="err"></div>
     <button class="btn block" id="join">Нэгдэх 🎁</button>
   </div>`}
+  <p style="text-align:center"><a href="#/recover/${gid}">🔑 Аль хэдийн нэгдсэн, линкээ алдсан уу?</a></p>
   ${g.names.length ? `<div class="card"><h3>Нэгдсэн хүмүүс</h3><div class="names">${g.names.map(n => `<span>${esc(n)}</span>`).join('')}</div></div>` : ''}`;
   if (g.drawn) return;
   const ed = wishEditor($('#wishEd'), {}, g.budget);
   $('#join').onclick = async () => {
+    if (!/^\d{4,8}$/.test($('#jpin').value)) { $('#err').textContent = 'Сэргээх PIN 4–8 оронтой тоо байна'; return; }
     const btn = $('#join'); btn.disabled = true; $('#err').textContent = '';
     try {
-      const d = await api('join', { gid, name: $('#jname').value, dept: $('#jdept')?.value, wish: ed.value() });
+      const d = await api('join', { gid, name: $('#jname').value, dept: $('#jdept')?.value, wish: ed.value(), pin: $('#jpin').value });
       remember({ gid, role: 'me', key: d.token, name: g.name });
       location.hash = `#/me/${gid}/${d.token}/welcome`;
     } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
@@ -486,6 +522,7 @@ async function pageMe(gid, token, flag) {
   <div class="card ${flag === 'welcome' ? 'green' : ''}">
     <h3>🔐 Таны хувийн линк</h3>
     <p class="small">${flag === 'welcome' ? '<b>Амжилттай нэгдлээ! 🎉</b> ' : ''}Сугалаа татагдсаны дараа энэ линкээр орж хэнд бэлэг өгөхөө харна. Линкээ хадгалж аваарай, бусдад бүү өгөөрэй.</p>
+    <p class="small muted">Алдвал: бүлгийн код <b>${gid}</b> + нэр + PIN-ээр сэргээнэ.</p>
     <div class="copy"><input readonly value="${esc(myLink)}"><button class="btn sm" id="cp">Хуулах</button></div>
   </div>
 
@@ -660,7 +697,9 @@ async function pageAdmin(gid, key, flag) {
 
     ${flag === 'new' ? `<div class="card green"><h3>✅ Бүлэг үүслээ!</h3>
       <p class="small">Энэ <b>админ линкийг</b> хадгалаарай. Үүгээр л бүлгээ удирдана:</p>
-      <div class="copy"><input readonly value="${esc(adminLink)}"><button class="btn sm green" data-copy="${esc(adminLink)}">Хуулах</button></div></div>` : ''}
+      <div class="copy"><input readonly value="${esc(adminLink)}"><button class="btn sm green" data-copy="${esc(adminLink)}">Хуулах</button></div>
+      <button class="btn ghost sm" id="selfSend" style="margin-top:10px">📩 Өөртөө илгээж хадгалах</button>
+      <p class="small" style="margin-top:10px">Линкээ алдвал: <b>Бүлгийн код: ${gid}</b> + таны PIN-ээр сэргээнэ.</p></div>` : ''}
 
     ${!g.drawn ? `
     <div class="card">
@@ -750,10 +789,11 @@ async function pageAdmin(gid, key, flag) {
         <textarea id="sThemes" style="min-height:160px">${esc((g.themes || []).join('\n'))}</textarea>
       </div>
       <button class="btn green sm" id="sSave" style="margin-top:10px">Хадгалах</button>
-      <p class="small muted" style="margin-top:12px">Админ линк: <a href="#" data-copy="${esc(adminLink)}">хуулах</a></p>
+      <p class="small muted" style="margin-top:12px">Админ линк: <a href="#" data-copy="${esc(adminLink)}">хуулах</a> · Бүлгийн код: <b>${gid}</b></p>
     </div>`;
 
     app.querySelectorAll('[data-copy]').forEach(b => b.onclick = e => { e.preventDefault(); copy(b.dataset.copy); });
+    $('#selfSend')?.addEventListener('click', () => share(`🎅 "${g.name}" Нууц Санта: зохион байгуулагчийн линк (бусдад бүү өг). Бүлгийн код: ${gid}`, adminLink));
     if (!g.drawn) {
       try { new QRCode($('#qr'), { text: joinLink, width: 160, height: 160, colorDark: '#9e2230' }); } catch {}
       $('#shareJ').onclick = () => share(`🎅 "${g.name}" Нууц Санта-д нэгдээрэй!`, joinLink);
