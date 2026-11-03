@@ -239,7 +239,7 @@ function giftCard(g, opts = {}) {
       <span class="p">${fmt(g.price)}</span>
       <div class="acts">
         ${opts.pick ? `<button class="btn sm" data-pick='${esc(JSON.stringify(g))}'>+ Нэмэх</button>` : ''}
-        <a class="btn ghost sm" href="${esc(g.url)}" target="_blank" rel="noopener">Үзэх</a>
+        <a class="btn ghost sm" href="${esc(g.url)}" target="_blank" rel="noopener" data-brand="${esc(g.brand)}">Үзэх</a>
       </div>
     </div></div>`;
 }
@@ -265,12 +265,22 @@ async function giftSection(el, budget, opts = {}) {
 
 /* ================= Хуудсууд ================= */
 const routes = {
-  '': pageHome, 'mine': pageMine, 'recover': pageRecover, 'g': pageJoin, 'me': pageMe, 'admin': pageAdmin,
+  '': pageHome, 'mine': pageMine, 'recover': pageRecover, 'g': pageJoin, 'me': pageMe, 'admin': pageAdmin, 'owner': pageOwner,
 };
+/* Хандалт тоолох: хувийн мэдээлэл илгээхгүй, зөвхөн хуудасны төрөл */
+const KIND = { '': 'home', g: 'join', me: 'me', admin: 'admin', recover: 'recover', mine: 'mine' };
+function track(action, body) {
+  try { fetch('/api', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action, ...body }) }).catch(() => {}); } catch {}
+}
+document.addEventListener('click', e => { const a = e.target.closest('a[data-brand]'); if (a) track('click', { brand: a.dataset.brand }); });
 function router() {
   const [r, ...args] = location.hash.replace(/^#\/?/, '').split('/');
   (routes[r] || pageHome)(...args.map(decodeURIComponent));
   window.scrollTo(0, 0);
+  if (r !== 'owner') {
+    const isNew = !LS.get('ns_v', false); if (isNew) LS.set('ns_v', true);
+    track('hit', { kind: KIND[r] || 'home', isNew });
+  }
 }
 addEventListener('hashchange', router);
 
@@ -498,7 +508,7 @@ function wishView(w) {
     ${w.items?.length ? `<ul class="list wishview">${w.items.map(i => `<li>
       ${i.img ? `<img src="${esc(i.img)}" alt="">` : '🎁'}
       <span class="grow">${esc(i.text)}${i.brand ? `<br><span class="brand ${brandCls(i.brand)}">${esc(i.brand)}${i.price ? ' · ' + fmt(i.price) : ''}</span>` : ''}</span>
-      ${i.url ? `<a class="btn ghost sm" href="${esc(i.url)}" target="_blank" rel="noopener">Үзэх</a>` : ''}</li>`).join('')}</ul>` : ''}
+      ${i.url ? `<a class="btn ghost sm" href="${esc(i.url)}" target="_blank" rel="noopener" data-brand="${esc(i.brand || '')}">Үзэх</a>` : ''}</li>`).join('')}</ul>` : ''}
     ${w.likes ? `<p>💚 <b>Дуртай:</b> ${esc(w.likes)}</p>` : ''}
     ${w.dislikes ? `<p>🚫 <b>Хүсэхгүй:</b> ${esc(w.dislikes)}</p>` : ''}
     ${w.size ? `<p>📏 <b>Хэмжээ:</b> ${esc(w.size)}</p>` : ''}`;
@@ -837,6 +847,63 @@ async function pageAdmin(gid, key, flag) {
       workdaysOnly: $('#sWork').checked, themes: $('#sThemes').value.split('\n') })
       .then(() => toast('Хадгалагдлаа ✓')).catch(e => toast(e.message));
   }
+}
+
+/* ---------- Сайтын эзний самбар (#/owner) ---------- */
+function pageOwner() {
+  app.innerHTML = `<div class="card" style="max-width:420px;margin:0 auto">
+    <h2>🔒 Самбар</h2>
+    <label>PIN</label><input id="opin" type="password" inputmode="numeric" autocomplete="current-password">
+    <div class="err" id="err"></div>
+    <button class="btn block" id="ogo">Нэвтрэх</button></div>`;
+  const go = async () => {
+    $('#err').textContent = '';
+    try { const d = await api('stats', { pin: $('#opin').value }); ownerView(d, $('#opin').value); }
+    catch (e) { $('#err').textContent = e.message; }
+  };
+  $('#ogo').onclick = go; $('#opin').onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+function bars(rows, key, color) {
+  const max = Math.max(1, ...rows.map(r => r[key]));
+  return `<div style="display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:8px">${rows.map(r =>
+    `<div title="${r.day}: ${r[key]}" style="flex:1;min-width:0;height:${Math.max(2, r[key] / max * 100)}%;background:${r[key] ? color : '#eadfd2'};border-radius:3px 3px 0 0"></div>`).join('')}</div>
+    <div class="small muted" style="display:flex;justify-content:space-between;margin-top:4px"><span>${rows[0].day.slice(5)}</span><span>${rows.at(-1).day.slice(5)}</span></div>`;
+}
+function hbars(obj, labels = {}) {
+  const ent = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  if (!ent.length) return '<p class="small muted">Одоогоор мэдээлэл алга.</p>';
+  const max = Math.max(...ent.map(e => e[1]));
+  return ent.map(([k, v]) => `<div style="display:flex;align-items:center;gap:10px;margin:8px 0">
+    <span style="width:130px;flex:none;font-weight:700;font-size:14px">${esc(labels[k] || k)}</span>
+    <span style="flex:1;background:#f1e7da;border-radius:6px;height:22px;overflow:hidden"><span style="display:block;height:100%;width:${v / max * 100}%;background:var(--red);border-radius:6px"></span></span>
+    <b style="width:44px;text-align:right">${v}</b></div>`).join('');
+}
+function ownerView(d, pin) {
+  const t = d.totals;
+  const tile = (n, l) => `<div class="step" style="text-align:left"><b style="font-size:30px">${n}</b><span class="small muted">${l}</span></div>`;
+  const pageNames = { home: 'Нүүр', join: 'Нэгдэх хуудас', me: 'Хувийн хуудас', admin: 'Зохион байгуулагч', recover: 'Сэргээх', mine: 'Миний бүлгүүд', other: 'Бусад' };
+  const when = ms => new Date(ms).toLocaleDateString('sv-SE').slice(5);
+  app.innerHTML = `
+  <div class="row" style="align-items:center;margin-bottom:12px"><h2 style="margin:0">📊 Самбар</h2>
+    <button class="btn ghost sm" id="orefresh" style="flex:none">↻ Шинэчлэх</button></div>
+  <div class="steps" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+    ${tile(t.groups, 'Нийт бүлэг')}${tile(t.people, 'Нийт оролцогч')}${tile(t.drawn, 'Сугалаа татсан бүлэг')}
+    ${tile(t.avgPeople, 'Бүлэгт дунджаар')}${tile(t.company + ' / ' + t.friends, 'Байгууллага / Найзууд')}${tile(t.multiDay, 'Олон өдрийн бүлэг')}
+    ${tile(t.chats, 'Нууц чат эхэлсэн')}${tile(t.medianBudget ? fmt(t.medianBudget) : '—', 'Дундаж төсөв (медиан)')}
+  </div>
+  <div class="card"><h3>Хандалт · сүүлийн 30 хоног</h3>
+    <p class="small muted">${t.views30} үзэлт · ${t.newVisitors30} шинэ зочин · ${t.clicks30} бэлгийн линк дарсан</p>
+    ${bars(d.daily, 'views', 'var(--red)')}</div>
+  <div class="card"><h3>Шинээр үүссэн бүлэг · сүүлийн 30 хоног</h3>${bars(d.daily, 'groups', 'var(--green)')}</div>
+  <div class="card"><h3>🎁 Брэндээр бэлгийн линк дарсан (30 хоног)</h3>${hbars(d.brands)}</div>
+  <div class="card"><h3>Хуудсаар үзэлт (30 хоног)</h3>${hbars(d.pages, pageNames)}</div>
+  <div class="card"><h3>Сүүлд үүссэн бүлгүүд</h3>
+    ${d.recent.length ? `<ul class="list">${d.recent.map(g => `<li>
+      <span class="grow"><b>${esc(g.name)}</b><br><span class="small muted">${when(g.created)} · ${g.mode === 'company' ? 'Байгууллага' : 'Найзууд'}${g.multiDay ? ' · Олон өдөр' : ''}${g.budget ? ' · ' + fmt(g.budget) : ''}</span></span>
+      <span class="pill">${g.people} хүн</span>
+      ${g.revealed ? '<span class="pill ok">Ил болсон</span>' : g.drawn ? '<span class="pill ok">Сугалсан</span>' : '<span class="pill">Хүлээгдэж буй</span>'}
+    </li>`).join('')}</ul>` : '<p class="muted">Одоогоор бүлэг алга.</p>'}</div>`;
+  $('#orefresh').onclick = async () => { try { ownerView(await api('stats', { pin }), pin); toast('Шинэчлэгдлээ'); } catch (e) { toast(e.message); } };
 }
 
 /* ================= Конфетти ================= */

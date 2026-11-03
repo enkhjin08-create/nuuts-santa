@@ -373,6 +373,84 @@ export default async (req) => {
           })),
         });
       }
+      /* ---------- Сайтын статистик ---------- */
+      case "hit":
+      case "click": {
+        // Улаанбаатарын цагаар өдрийн түлхүүр
+        const day = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10);
+        const key = `stats/${day}`;
+        const d = (await s.get(key, { type: "json" })) || {};
+        if (b.action === "hit") {
+          const kind = ["home", "join", "me", "admin", "recover", "mine"].includes(b.kind) ? b.kind : "other";
+          d["v_" + kind] = (d["v_" + kind] || 0) + 1;
+          d.views = (d.views || 0) + 1;
+          if (b.isNew) d.newVisitors = (d.newVisitors || 0) + 1;
+        } else {
+          const brand = ["Зөвхөн түүнд", "Meowie", "CuteCups"].includes(b.brand) ? b.brand : "Бусад";
+          d["c_" + brand] = (d["c_" + brand] || 0) + 1;
+          d.clicks = (d.clicks || 0) + 1;
+        }
+        await s.setJSON(key, d);
+        return json({ ok: true });
+      }
+
+      case "stats": {
+        const pin = process.env.ADMIN_PIN;
+        if (!pin) return fail("Netlify дээр ADMIN_PIN орчны хувьсагч тохируулаагүй байна", 500);
+        if (String(b.pin || "") !== pin) return fail("PIN буруу байна", 403);
+        const { blobs } = await s.list({ prefix: "g/" });
+        const byGroup = {};
+        for (const { key } of blobs) {
+          const [, gidK, kind] = key.split("/");
+          const g = (byGroup[gidK] ||= { p: 0, t: 0, meta: false });
+          if (kind === "meta") g.meta = true; else if (kind === "p") g.p++; else if (kind === "t") g.t++;
+        }
+        const gids = Object.keys(byGroup).filter((k) => byGroup[k].meta);
+        const metas = (await Promise.all(gids.map((k) => s.get(`g/${k}/meta`, { type: "json" })))).filter(Boolean);
+        const dayOf = (ms) => new Date(ms + 8 * 3600e3).toISOString().slice(0, 10);
+        const groups = metas.map((m) => ({
+          name: m.name, mode: m.mode, multiDay: !!m.multiDay, budget: m.budget || 0,
+          people: byGroup[m.id].p, chats: byGroup[m.id].t,
+          created: m.createdAt, drawn: !!m.drawnAt, revealed: !!m.revealedAt,
+        })).sort((a, c) => c.created - a.created);
+        const sum = (f) => groups.reduce((n, g) => n + f(g), 0);
+        // Сүүлийн 30 хоног
+        const days = [];
+        for (let i = 29; i >= 0; i--) days.push(dayOf(Date.now() - i * 864e5));
+        const st = await Promise.all(days.map((d) => s.get(`stats/${d}`, { type: "json" })));
+        const daily = days.map((d, i) => ({
+          day: d, groups: groups.filter((g) => dayOf(g.created) === d).length,
+          views: st[i]?.views || 0, newVisitors: st[i]?.newVisitors || 0, clicks: st[i]?.clicks || 0,
+        }));
+        const brands = {};
+        const pages = {};
+        for (const x of st) {
+          if (!x) continue;
+          for (const [k, v] of Object.entries(x)) {
+            if (k.startsWith("c_")) brands[k.slice(2)] = (brands[k.slice(2)] || 0) + v;
+            if (k.startsWith("v_")) pages[k.slice(2)] = (pages[k.slice(2)] || 0) + v;
+          }
+        }
+        const budgets = groups.map((g) => g.budget).filter((x) => x > 0).sort((a, c) => a - c);
+        return json({
+          totals: {
+            groups: groups.length, people: sum((g) => g.people),
+            company: groups.filter((g) => g.mode === "company").length,
+            friends: groups.filter((g) => g.mode === "friends").length,
+            multiDay: groups.filter((g) => g.multiDay).length,
+            drawn: groups.filter((g) => g.drawn).length,
+            chats: sum((g) => g.chats),
+            avgPeople: groups.length ? Math.round((sum((g) => g.people) / groups.length) * 10) / 10 : 0,
+            medianBudget: budgets.length ? budgets[Math.floor(budgets.length / 2)] : 0,
+            views30: daily.reduce((n, d) => n + d.views, 0),
+            newVisitors30: daily.reduce((n, d) => n + d.newVisitors, 0),
+            clicks30: daily.reduce((n, d) => n + d.clicks, 0),
+          },
+          daily, brands, pages,
+          recent: groups.slice(0, 50).map(({ name, mode, multiDay, budget, people, created, drawn, revealed }) => ({ name, mode, multiDay, budget, people, created, drawn, revealed })),
+        });
+      }
+
       default:
         return fail("Тодорхойгүй үйлдэл");
     }
