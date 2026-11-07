@@ -19,6 +19,20 @@
 <meta name="twitter:image" content="https://santa.zuvhuntuund.com/og-image.png?v=2">
 <link rel="canonical" href="https://santa.zuvhuntuund.com/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎅</text></svg>">
+<script>
+/* #/owner дээр самбарыг утсанд апп болгон суулгах (manifest, icon) */
+if (/^#\/owner/.test(location.hash)) {
+  document.title = 'Санта самбар';
+  [['manifest','/owner.webmanifest'],['apple-touch-icon','/icons/owner-180.png']].forEach(([rel,href]) => {
+    const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l);
+  });
+  [['theme-color','#c8323c'],['apple-mobile-web-app-capable','yes'],['mobile-web-app-capable','yes'],
+   ['apple-mobile-web-app-title','Санта самбар'],['apple-mobile-web-app-status-bar-style','default']].forEach(([n,c]) => {
+    const m = document.createElement('meta'); m.name = n; m.content = c; document.head.appendChild(m);
+  });
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -851,17 +865,27 @@ async function pageAdmin(gid, key, flag) {
 
 /* ---------- Сайтын эзний самбар (#/owner) ---------- */
 function pageOwner() {
+  const saved = LS.get('ns_owner_pin', '');
+  const go = async (pin, remember) => {
+    const err = $('#err'); if (err) err.textContent = '';
+    try {
+      const d = await api('stats', { pin });
+      if (remember) LS.set('ns_owner_pin', pin);
+      ownerView(d, pin);
+    } catch (e) {
+      if (saved && pin === saved) { LS.set('ns_owner_pin', ''); return pageOwner(); }
+      if ($('#err')) $('#err').textContent = e.message;
+    }
+  };
+  if (saved) { app.innerHTML = '<p class="muted" style="text-align:center;margin-top:40px">Ачаалж байна…</p>'; return go(saved, true); }
   app.innerHTML = `<div class="card" style="max-width:420px;margin:0 auto">
     <h2>🔒 Самбар</h2>
     <label>PIN</label><input id="opin" type="password" inputmode="numeric" autocomplete="current-password">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600;margin-top:10px"><input type="checkbox" id="orem" checked style="width:auto"> Энэ төхөөрөмж дээр сануулах</label>
     <div class="err" id="err"></div>
     <button class="btn block" id="ogo">Нэвтрэх</button></div>`;
-  const go = async () => {
-    $('#err').textContent = '';
-    try { const d = await api('stats', { pin: $('#opin').value }); ownerView(d, $('#opin').value); }
-    catch (e) { $('#err').textContent = e.message; }
-  };
-  $('#ogo').onclick = go; $('#opin').onkeydown = e => { if (e.key === 'Enter') go(); };
+  const submit = () => go($('#opin').value, $('#orem').checked);
+  $('#ogo').onclick = submit; $('#opin').onkeydown = e => { if (e.key === 'Enter') submit(); };
 }
 function bars(rows, key, color) {
   const max = Math.max(1, ...rows.map(r => r[key]));
@@ -885,7 +909,7 @@ function ownerView(d, pin) {
   const when = ms => new Date(ms).toLocaleDateString('sv-SE').slice(5);
   app.innerHTML = `
   <div class="row" style="align-items:center;margin-bottom:12px"><h2 style="margin:0">📊 Самбар</h2>
-    <button class="btn ghost sm" id="orefresh" style="flex:none">↻ Шинэчлэх</button></div>
+    <button class="btn ghost sm" id="orefresh" style="flex:none">↻ Шинэчлэх</button><button class="btn ghost sm" id="ologout" style="flex:none">Гарах</button></div>
   <div class="steps" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
     ${tile(t.groups, 'Нийт бүлэг')}${tile(t.people, 'Нийт оролцогч')}${tile(t.drawn, 'Сугалаа татсан бүлэг')}
     ${tile(t.avgPeople, 'Бүлэгт дунджаар')}${tile(t.company + ' / ' + t.friends, 'Байгууллага / Найзууд')}${tile(t.multiDay, 'Олон өдрийн бүлэг')}
@@ -903,6 +927,7 @@ function ownerView(d, pin) {
       <span class="pill">${g.people} хүн</span>
       ${g.revealed ? '<span class="pill ok">Ил болсон</span>' : g.drawn ? '<span class="pill ok">Сугалсан</span>' : '<span class="pill">Хүлээгдэж буй</span>'}
     </li>`).join('')}</ul>` : '<p class="muted">Одоогоор бүлэг алга.</p>'}</div>`;
+  $('#ologout').onclick = () => { LS.set('ns_owner_pin', ''); pageOwner(); };
   $('#orefresh').onclick = async () => { try { ownerView(await api('stats', { pin }), pin); toast('Шинэчлэгдлээ'); } catch (e) { toast(e.message); } };
 }
 

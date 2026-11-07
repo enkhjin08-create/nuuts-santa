@@ -1,0 +1,17 @@
+{
+  "name": "Нууц Санта — Самбар",
+  "short_name": "Санта самбар",
+  "description": "Нууц Санта сайтын статистик",
+  "id": "/#/owner",
+  "start_url": "/#/owner",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf5ec",
+  "theme_color": "#c8323c",
+  "lang": "mn",
+  "icons": [
+    { "src": "/icons/owner-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/owner-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/owner-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
