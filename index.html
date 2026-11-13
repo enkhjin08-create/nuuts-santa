@@ -894,8 +894,8 @@ function pageOwner() {
 /* Эзний самбар: сайтад санал болгож буй барааны жагсаалт + 30 хоногт дарсан тоо */
 async function ownerGifts(clicks) {
   const el = $('#ogifts'); if (!el) return;
-  const all = (await gifts()).map(g => ({ ...g, c: clicks[gid(g.img)] || 0 }));
-  const brands = ['Бүгд', 'Зөвхөн түүнд', 'Meowie', 'CuteCups'];
+  const all = (await gifts()).filter(g => g.brand !== 'Meowie').map(g => ({ ...g, c: clicks[gid(g.img)] || 0 }));
+  const brands = ['Бүгд', 'Зөвхөн түүнд', 'CuteCups'];
   const ranges = [[0, 10000, '10мян хүртэл'], [10000, 20000, '10–20мян'], [20000, 30000, '20–30мян'], [30000, 50000, '30–50мян'], [50000, 1e12, '50мян+']];
   const cnt = (b, r) => all.filter(g => g.brand === b && g.price >= r[0] && g.price < r[1]).length;
   let brand = 'Бүгд', sort = 'clicks', q = '';
