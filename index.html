@@ -183,6 +183,8 @@ const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* Барааны богино ID (зурагны хаягаас) — дарсан тоог бараагаар тоолоход */
 const gid = (u) => { let h = 5381; for (const c of String(u || '')) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h.toString(36); };
+/* zuvhuntuund.com-ийн хуучин /products/{дэлгүүр}/{id} холбоосыг шинэ product.html?id= руу */
+const fixUrl = (u) => String(u || '').replace(/^https?:\/\/(www\.)?zuvhuntuund\.com\/products\/\d+\/(\d+).*$/, 'https://zuvhuntuund.com/product.html?id=$2');
 const fmt = (n) => Number(n || 0).toLocaleString('en-US').replace(/,/g, "'") + '₮';
 const ORIGIN = location.origin + location.pathname;
 const link = (h) => ORIGIN + '#' + h;
@@ -255,7 +257,7 @@ function giftCard(g, opts = {}) {
       <span class="p">${fmt(g.price)}</span>
       <div class="acts">
         ${opts.pick ? `<button class="btn sm" data-pick='${esc(JSON.stringify(g))}'>+ Нэмэх</button>` : ''}
-        <a class="btn ghost sm" href="${esc(g.url)}" target="_blank" rel="noopener" data-brand="${esc(g.brand)}" data-gift="${gid(g.img)}">Үзэх</a>
+        <a class="btn ghost sm" href="${esc(fixUrl(g.url))}" target="_blank" rel="noopener" data-brand="${esc(g.brand)}" data-gift="${gid(g.img)}">Үзэх</a>
       </div>
     </div></div>`;
 }
@@ -524,7 +526,7 @@ function wishView(w) {
     ${w.items?.length ? `<ul class="list wishview">${w.items.map(i => `<li>
       ${i.img ? `<img src="${esc(i.img)}" alt="">` : '🎁'}
       <span class="grow">${esc(i.text)}${i.brand ? `<br><span class="brand ${brandCls(i.brand)}">${esc(i.brand)}${i.price ? ' · ' + fmt(i.price) : ''}</span>` : ''}</span>
-      ${i.url ? `<a class="btn ghost sm" href="${esc(i.url)}" target="_blank" rel="noopener" data-brand="${esc(i.brand || '')}"${i.img ? ` data-gift="${gid(i.img)}"` : ''}>Үзэх</a>` : ''}</li>`).join('')}</ul>` : ''}
+      ${i.url ? `<a class="btn ghost sm" href="${esc(fixUrl(i.url))}" target="_blank" rel="noopener" data-brand="${esc(i.brand || '')}"${i.img ? ` data-gift="${gid(i.img)}"` : ''}>Үзэх</a>` : ''}</li>`).join('')}</ul>` : ''}
     ${w.likes ? `<p>💚 <b>Дуртай:</b> ${esc(w.likes)}</p>` : ''}
     ${w.dislikes ? `<p>🚫 <b>Хүсэхгүй:</b> ${esc(w.dislikes)}</p>` : ''}
     ${w.size ? `<p>📏 <b>Хэмжээ:</b> ${esc(w.size)}</p>` : ''}`;
@@ -918,7 +920,7 @@ async function ownerGifts(clicks) {
         <img src="${esc(g.img)}" alt="" loading="lazy" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none" onerror="this.style.visibility='hidden'">
         <span class="grow"><b>${esc(g.name)}</b><br><span class="brand ${brandCls(g.brand)}">${esc(g.brand)}</span> <span class="small muted">${fmt(g.price)}</span></span>
         <span class="pill ${g.c ? 'ok' : ''}" title="30 хоногт дарсан">${g.c} дарсан</span>
-        <a class="btn ghost sm" href="${esc(g.url)}" target="_blank" rel="noopener" style="flex:none">↗</a>
+        <a class="btn ghost sm" href="${esc(fixUrl(g.url))}" target="_blank" rel="noopener" style="flex:none">↗</a>
       </li>`).join('') || '<li class="muted">Олдсонгүй</li>'}</ul>`;
     el.querySelectorAll('[data-ob]').forEach(b => b.onclick = () => { brand = b.dataset.ob; draw(); });
     $('#ogs').onchange = e => { sort = e.target.value; draw(); };
