@@ -389,6 +389,12 @@ export default async (req) => {
           const brand = ["Зөвхөн түүнд", "Meowie", "CuteCups"].includes(b.brand) ? b.brand : "Бусад";
           d["c_" + brand] = (d["c_" + brand] || 0) + 1;
           d.clicks = (d.clicks || 0) + 1;
+          // Бараагаар: богино ID (index.html-ийн gid), өдрийн 500 хүртэл төрөл
+          const gk = String(b.gift || "");
+          if (/^[0-9a-z]{1,8}$/.test(gk)) {
+            d.gc ||= {};
+            if (d.gc[gk] || Object.keys(d.gc).length < 500) d.gc[gk] = (d.gc[gk] || 0) + 1;
+          }
         }
         await s.setJSON(key, d);
         return json({ ok: true });
@@ -424,8 +430,10 @@ export default async (req) => {
         }));
         const brands = {};
         const pages = {};
+        const giftClicks = {};
         for (const x of st) {
           if (!x) continue;
+          for (const [k, v] of Object.entries(x.gc || {})) giftClicks[k] = (giftClicks[k] || 0) + v;
           for (const [k, v] of Object.entries(x)) {
             if (k.startsWith("c_")) brands[k.slice(2)] = (brands[k.slice(2)] || 0) + v;
             if (k.startsWith("v_")) pages[k.slice(2)] = (pages[k.slice(2)] || 0) + v;
@@ -446,7 +454,7 @@ export default async (req) => {
             newVisitors30: daily.reduce((n, d) => n + d.newVisitors, 0),
             clicks30: daily.reduce((n, d) => n + d.clicks, 0),
           },
-          daily, brands, pages,
+          daily, brands, pages, giftClicks,
           recent: groups.slice(0, 50).map(({ name, mode, multiDay, budget, people, created, drawn, revealed }) => ({ name, mode, multiDay, budget, people, created, drawn, revealed })),
         });
       }
