@@ -243,7 +243,14 @@ function dayStrip(g, marks = {}) {
 /* ================= Бэлгийн каталог ================= */
 let GIFTS = null;
 async function gifts() {
-  if (!GIFTS) { try { GIFTS = await (await fetch('gifts.json')).json(); } catch { GIFTS = []; } }
+  if (!GIFTS) {
+    let local = [];
+    try { local = await (await fetch('gifts.json')).json(); } catch {}
+    // Зөвхөн түүнд, CuteCups — zuvhuntuund.com-оос шууд (нуусан, дууссан бараа орохгүй); Meowie — gifts.json-оос
+    let live = null;
+    try { live = (await api('gifts')).items; } catch {}
+    GIFTS = live?.length ? [...live, ...local.filter(g => g.brand === 'Meowie')] : local;
+  }
   return GIFTS;
 }
 const brandCls = b => b === 'Meowie' ? 'meowie' : b === 'CuteCups' ? 'cc' : 'zt';

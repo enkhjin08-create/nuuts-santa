@@ -1,14 +1,6 @@
 [
  {
   "brand": "Зөвхөн түүнд",
-  "name": "Бүсгүй 1",
-  "price": 46000,
-  "img": "https://cdn.zochil.shop/7af96b25-9415-46b5-9ba4-0527feafd9b7_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=810061",
-  "cat": "giftset"
- },
- {
-  "brand": "Зөвхөн түүнд",
   "name": "Love you #3 багц",
   "price": 30000,
   "img": "https://cdn.zochil.shop/e8736728-fde7-4a5a-bae8-58b7a1afd9ef_t1500.jpg",
@@ -24,27 +16,11 @@
   "cat": "giftset"
  },
  {
-  "brand": "Зөвхөн түүнд",
-  "name": "Love you багц #1",
-  "price": 29000,
-  "img": "https://cdn.zochil.shop/20a7dd3d-dcc4-423c-b164-459566010e2b_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=789587",
-  "cat": "giftset"
- },
- {
   "brand": "CuteCups",
   "name": "Туулай цагаан, ягаан",
   "price": 35000,
   "img": "https://cdn.zochil.shop/bb556fc0-a0dd-4559-941e-4890480dd7c6_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=778920",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Cat tail",
-  "price": 34000,
-  "img": "https://cdn.zochil.shop/dccaf41d-1c2f-431b-b8a2-b9576180c863_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=778914",
   "cat": "cup"
  },
  {
@@ -57,26 +33,10 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Butterfly аяга 3 өнгө",
-  "price": 24000,
-  "img": "https://cdn.zochil.shop/0d3a2fd7-5487-43a0-9614-5e3c29348c3b_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=778896",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Том тавагтай мууртай аяга 3 өнгөтэй",
   "price": 40000,
   "img": "https://cdn.zochil.shop/7b7a46ed-0fdf-40f5-b769-e252d4ae7e80_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=776048",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "One piece Sabo аяга таваг",
-  "price": 43000,
-  "img": "https://cdn.zochil.shop/6568726a-759c-4d7f-a316-3e7a890edc55_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=776045",
   "cat": "cup"
  },
  {
@@ -105,26 +65,10 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Zootopia үнэг, туулай хос аяга",
-  "price": 68000,
-  "img": "https://cdn.zochil.shop/be0c48b5-19e2-4dcb-93f0-3a3973ff76bc_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=776038",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Нохойтой аяга",
   "price": 39000,
   "img": "https://cdn.zochil.shop/b27e441e-31ea-4b20-83a6-4b1cd5493e0d_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=776033",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Lilo Stitch хос аяга",
-  "price": 75000,
-  "img": "https://cdn.zochil.shop/eb0bdb6c-fecb-456e-93c4-61960a6954e7_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=776031",
   "cat": "cup"
  },
  {
@@ -169,30 +113,6 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Marie мууртай аяга",
-  "price": 34000,
-  "img": "https://cdn.zochil.shop/fb52beb8-b31b-43a8-b412-a8f6fa0d37d3_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=776007",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Evil queen аяга",
-  "price": 58000,
-  "img": "https://cdn.zochil.shop/ef7c1d22-b0eb-4fdb-9f71-28f23ea7ac4a_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=776004",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Dambo",
-  "price": 58000,
-  "img": "https://cdn.zochil.shop/da11cfac-8b5b-4d50-a9cc-2b3b7b74e3b2_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=775986",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Pink pooh",
   "price": 54000,
   "img": "https://cdn.zochil.shop/29ba858c-c6af-4da2-905e-fa5205326b00_t1500.jpg",
@@ -214,22 +134,6 @@
   "img": "https://cdn.zochil.shop/54a142b9-4a07-4e58-912d-15c531d457fb_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=775947",
   "cat": "cup"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Ширээний календарь 2026",
-  "price": 22000,
-  "img": "https://cdn.zochil.shop/4e874a69-20fb-49b4-9f7a-fa544864f6a1_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=748641",
-  "cat": "extra"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Pre-order: ME 2026",
-  "price": 45000,
-  "img": "https://cdn.zochil.shop/a1c99302-6b11-40d5-a647-494a2c86689b_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=726574",
-  "cat": "extra"
  },
  {
   "brand": "Зөвхөн түүнд",
@@ -261,14 +165,6 @@
   "price": 70000,
   "img": "https://cdn.zochil.shop/250b1b9c-02db-45ae-aebe-12784efbdb4c_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=594192",
-  "cat": "giftset"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Love you #4",
-  "price": 60000,
-  "img": "https://cdn.zochil.shop/f78cc8fe-5de7-4aed-a7eb-b836b04e5a9c_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=594190",
   "cat": "giftset"
  },
  {
@@ -353,35 +249,11 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Love ribbon (ягаан)",
-  "price": 33000,
-  "img": "https://cdn.zochil.shop/6d3ea9a7-7209-477b-be56-ff395e0729f5_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=562618",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Love ribbon (нил ягаан)",
-  "price": 33000,
-  "img": "https://cdn.zochil.shop/a0113f52-26f6-4280-adc2-df98a6a8bc84_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=562615",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Van Gogh cup",
   "price": 52000,
   "img": "https://cdn.zochil.shop/b7c4a2a8-8466-4f0e-85e3-196da85a57d9_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=562611",
   "cat": "cup"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Ширээний календарь",
-  "price": 22000,
-  "img": "https://cdn.zochil.shop/f9a4ca95-3dc4-434d-bfc7-884fdfdacfed_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=554516",
-  "cat": "extra"
  },
  {
   "brand": "Зөвхөн түүнд",
@@ -413,14 +285,6 @@
   "price": 30000,
   "img": "https://cdn.zochil.shop/09fb9e3a-c2ad-4ad5-91b2-2f282d072518_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=434516",
-  "cat": "extra"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Зүрхэн шилтэй лаа",
-  "price": 8000,
-  "img": "https://cdn.zochil.shop/beef1768-863a-4a6f-ae6b-9863809e9e91_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=429144",
   "cat": "extra"
  },
  {
@@ -465,14 +329,6 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Mrs. Pot and Chip",
-  "price": 108000,
-  "img": "https://cdn.zochil.shop/ee15981a-b5fb-47d7-953d-59f020fe9cf0_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=424760",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Шар мууртай ягаан аяга",
   "price": 36000,
   "img": "https://cdn.zochil.shop/14917aa1-3903-4c28-9c48-0010008297ea_t1500.jpg",
@@ -505,26 +361,10 @@
  },
  {
   "brand": "CuteCups",
-  "name": "Mike cat paw",
-  "price": 36000,
-  "img": "https://cdn.zochil.shop/67ffe7bb-610b-43a0-881e-44ebe8c5eb60_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=424710",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
   "name": "Two of us хос аяга",
   "price": 53000,
   "img": "https://cdn.zochil.shop/ab3bb9dc-7262-4f18-8bbd-4ce5b031e83a_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=424682",
-  "cat": "cup"
- },
- {
-  "brand": "CuteCups",
-  "name": "Mike cat paw",
-  "price": 36000,
-  "img": "https://cdn.zochil.shop/aae61766-eba0-4486-b73d-739a1186ff7c_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=423586",
   "cat": "cup"
  },
  {
@@ -561,22 +401,6 @@
  },
  {
   "brand": "Зөвхөн түүнд",
-  "name": "Love you #4",
-  "price": 52000,
-  "img": "https://cdn.zochil.shop/ca590695-d9ab-4cf0-9440-ffe17eea1e11_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=304688",
-  "cat": "extra"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Love you #3",
-  "price": 75000,
-  "img": "https://cdn.zochil.shop/05cdc211-4961-485f-b625-c816d2ee5979_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=300844",
-  "cat": "extra"
- },
- {
-  "brand": "Зөвхөн түүнд",
   "name": "Хайрын купон",
   "price": 15000,
   "img": "https://cdn.zochil.shop/7f967a82-6779-48ee-99db-c52c17257769_t1500.jpg",
@@ -590,22 +414,6 @@
   "img": "https://cdn.zochil.shop/f684efaa-2a46-465b-bfca-b2535aab8b37_t1500.png",
   "url": "https://zuvhuntuund.com/product.html?id=148000",
   "cat": "extra"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Улбар алтанзул",
-  "price": 75000,
-  "img": "https://cdn.zochil.shop/f7ae28fe-e4b1-4388-8bed-92326a84e088_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=897069",
-  "cat": "flower"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Ягаан сарнайтай баглаа",
-  "price": 40000,
-  "img": "https://cdn.zochil.shop/d6ddf935-ed92-4e49-bc33-3ecb25f2cb67_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=897063",
-  "cat": "flower"
  },
  {
   "brand": "Зөвхөн түүнд",
@@ -633,14 +441,6 @@
  },
  {
   "brand": "Зөвхөн түүнд",
-  "name": "Цагаан алтанзул",
-  "price": 15000,
-  "img": "https://cdn.zochil.shop/8f507bbc-0005-43d3-bd32-09e9c81f5e02_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=896648",
-  "cat": "flower"
- },
- {
-  "brand": "Зөвхөн түүнд",
   "name": "Наранцэцэгтэй баглаа",
   "price": 25000,
   "img": "https://cdn.zochil.shop/3e97d48c-8f48-4fec-9df2-533298c72e38_t1500.jpg",
@@ -653,30 +453,6 @@
   "price": 45000,
   "img": "https://cdn.zochil.shop/0d1da7cc-c645-45f7-8395-7e7af29d53aa_t1500.jpg",
   "url": "https://zuvhuntuund.com/product.html?id=896597",
-  "cat": "flower"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Хонгорзул ягаан",
-  "price": 13000,
-  "img": "https://cdn.zochil.shop/835a46e2-5fac-46db-a11a-b19b626e6a6b_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=896593",
-  "cat": "flower"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Lily цэцгийн баглаа",
-  "price": 48000,
-  "img": "https://cdn.zochil.shop/93adfea7-440c-4b22-9a52-4062c888603e_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=896591",
-  "cat": "flower"
- },
- {
-  "brand": "Зөвхөн түүнд",
-  "name": "Lily цэцгийн баглаа",
-  "price": 50000,
-  "img": "https://cdn.zochil.shop/79e9af59-35e6-488b-9057-fe711169f362_t1500.jpg",
-  "url": "https://zuvhuntuund.com/product.html?id=896579",
   "cat": "flower"
  },
  {

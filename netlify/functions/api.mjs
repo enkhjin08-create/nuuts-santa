@@ -136,6 +136,39 @@ function draw(people, exclusions, sameDeptBlocked) {
   return null;
 }
 
+
+/* Зөвхөн түүнд / CuteCups-ын барааг zuvhuntuund.com-оос шууд авна (нуусан, дууссаныг хасна).
+   zt-site-ын products-api.js-тэй адил: data.js (үндсэн) + admin-ы overrides + шинэ бараа. */
+const ZT = "https://zuvhuntuund.com";
+async function ztGifts(s) {
+  const cached = await s.get("cache/zt-gifts", { type: "json" });
+  if (cached && Date.now() - cached.at < 30 * 60e3) return cached.items;
+  try {
+    const ctl = AbortSignal.timeout(8000);
+    const [src, data] = await Promise.all([
+      fetch(`${ZT}/assets/data.js`, { signal: ctl }).then((r) => { if (!r.ok) throw new Error("data.js " + r.status); return r.text(); }),
+      fetch(`${ZT}/api/products`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "list" }), signal: ctl })
+        .then((r) => { if (!r.ok) throw new Error("products " + r.status); return r.json(); }),
+    ]);
+    const start = src.indexOf("const PRODUCTS = ");
+    const base = JSON.parse(src.slice(start + 17, src.indexOf("\n];", start) + 2));
+    const ov = data.overrides || {};
+    const all = [...base.map((p) => ({ ...p, ...(ov[String(p.id)] || {}) })), ...(data.products || [])];
+    const items = all
+      .filter((p) => !p.hidden && !p.soldOut && p.price > 0 && p.name)
+      .map((p) => ({
+        brand: p.category === "cup" ? "CuteCups" : "Зөвхөн түүнд",
+        name: String(p.name).trim(), price: p.price, img: p.image || "",
+        url: `${ZT}/product.html?id=${p.id}`, cat: p.category || "extra",
+      }));
+    if (items.length < 10) throw new Error("хэт цөөн бараа");
+    await s.setJSON("cache/zt-gifts", { at: Date.now(), items });
+    return items;
+  } catch (e) {
+    return cached ? cached.items : null; // алдаа гарвал хуучин кэш, байхгүй бол null (client gifts.json-оо ашиглана)
+  }
+}
+
 export default async (req) => {
   if (req.method !== "POST") return fail("POST only", 405);
   let b;
@@ -372,6 +405,10 @@ export default async (req) => {
             gaveToday: today ? !!p.gave?.[today] : false, gaveCount: Object.keys(p.gave || {}).length, guessed: !!p.guess,
           })),
         });
+      }
+      case "gifts": {
+        const items = await ztGifts(s);
+        return json({ items });
       }
       /* ---------- Сайтын статистик ---------- */
       case "hit":
