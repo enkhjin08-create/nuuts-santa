@@ -713,7 +713,12 @@ async function pageMe(gid, token, flag) {
     <div class="copy"><input readonly value="${esc(myLink)}"><button class="btn sm" id="cp">Хуулах</button></div>
   </div>
 
-  ${!g.drawn ? `
+  ${g.drawn && !recipient ? `
+  <div class="card" style="text-align:center;border-color:#f3b4b4;background:#fff6f6">
+    <div style="font-size:48px">😕</div>
+    <h2>Таны сугалаа олдсонгүй</h2>
+    <p class="muted">Сугалаа татагдсан ч танд хүлээн авагч оноогдоогүй байна. Зохион байгуулагчдаа хэлж сугалааг дахин татуулна уу.</p>
+  </div>` : !g.drawn ? `
   <div class="card" style="text-align:center">
     <div style="font-size:48px">⏳</div>
     <h2>Сугалаа хараахан татагдаагүй байна</h2>
@@ -809,7 +814,7 @@ async function pageMe(gid, token, flag) {
   if (!g.drawn) return;
 
   const mbx = $('#mbx');
-  mbx.onclick = () => {
+  if (mbx) mbx.onclick = () => {
     if (mbx.classList.contains('open')) return;
     mbx.classList.add('open');
     setTimeout(() => {

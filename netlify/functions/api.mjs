@@ -254,9 +254,12 @@ export default async (req) => {
         const me = m && (await getMe(s, gid, b.token));
         if (!me) return fail("Линк буруу байна", 404);
         let recipient = null, santaThread = [], myThread = [], multi = null;
-        if (m.drawnAt && !me.assignedTo) {
+        if (m.drawnAt) {
           const all = await listParticipants(s, gid);
-          if (await healDraw(s, gid, m, all)) Object.assign(me, all.find((p) => p.id === me.id) || {});
+          if (!me.assignedTo || !all.some((p) => p.id === me.assignedTo)) {
+            me.assignedTo = null;
+            if (await healDraw(s, gid, m, all)) Object.assign(me, all.find((p) => p.id === me.id) || {});
+          }
         }
         if (m.drawnAt && me.assignedTo) {
           const ps = await listParticipants(s, gid);
