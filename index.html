@@ -1016,7 +1016,8 @@ async function pageAdmin(gid, key, flag) {
 }
 
 /* ---------- Сайтын эзний самбар (#/owner) ---------- */
-function pageOwner() {
+function pageOwner(sub, gidArg) {
+  if (sub === 'g' && gidArg) return ownerGroupPage(gidArg);
   const saved = LS.get('ns_owner_pin', '');
   const go = async (pin, remember) => {
     const err = $('#err'); if (err) err.textContent = '';
@@ -1111,15 +1112,68 @@ function ownerView(d, pin) {
   <div class="card"><h3>🎁 Брэндээр бэлгийн линк дарсан (30 хоног)</h3>${hbars(d.brands)}</div>
   <div class="card"><h3>Хуудсаар үзэлт (30 хоног)</h3>${hbars(d.pages, pageNames)}</div>
   <div class="card" id="ogifts"><h3>🛍️ Санал болгож буй бараа</h3><p class="small muted">Ачаалж байна…</p></div>
-  <div class="card"><h3>Сүүлд үүссэн бүлгүүд</h3>
-    ${d.recent.length ? `<ul class="list">${d.recent.map(g => `<li>
-      <span class="grow"><b>${esc(g.name)}</b><br><span class="small muted">${when(g.created)} · ${g.mode === 'company' ? 'Байгууллага' : 'Найзууд'}${g.multiDay ? ' · Олон өдөр' : ''}${g.budget ? ' · ' + fmt(g.budget) : ''}</span></span>
-      <span class="pill">${g.people} хүн</span>
-      ${g.revealed ? '<span class="pill ok">Ил болсон</span>' : g.drawn ? '<span class="pill ok">Сугалсан</span>' : '<span class="pill">Хүлээгдэж буй</span>'}
-    </li>`).join('')}</ul>` : '<p class="muted">Одоогоор бүлэг алга.</p>'}</div>`;
+  <div class="card" id="ogroups"><h3>📋 Бүх бүлэг</h3><p class="small muted">Ачаалж байна…</p></div>`;
   ownerGifts(d.giftClicks || {});
+  ownerGroups(pin);
   $('#ologout').onclick = () => { LS.set('ns_owner_pin', ''); pageOwner(); };
   $('#orefresh').onclick = async () => { try { ownerView(await api('stats', { pin }), pin); toast('Шинэчлэгдлээ'); } catch (e) { toast(e.message); } };
+}
+
+
+/* Эзний самбар: бүх бүлгийн жагсаалт */
+async function ownerGroups(pin) {
+  const el = $('#ogroups'); if (!el) return;
+  let d; try { d = await api('ownerGroups', { pin }); } catch (e) { el.innerHTML = `<h3>📋 Бүх бүлэг</h3><p class="err">${esc(e.message)}</p>`; return; }
+  const when = ms => new Date(ms).toLocaleDateString('sv-SE').slice(5);
+  const bad = d.groups.filter(g => g.broken).length;
+  el.innerHTML = `<h3>📋 Бүх бүлэг · ${d.groups.length}</h3>
+    ${bad ? `<p class="note" style="background:#fde8e8;border-color:#f3b4b4">⚠️ ${bad} бүлэгт сугалаагаа аваагүй хүн байна. Бүлэг дээр дарж засна уу.</p>` : ''}
+    <p class="small muted">Бүлэг дээр дарж оролцогчид, тэдний хувийн линк, сугалааны төлөвийг харна.</p>
+    ${d.groups.length ? `<ul class="list">${d.groups.map(g => `<li style="cursor:pointer" onclick="location.hash='#/owner/g/${g.id}'">
+      <span class="grow"><b>${esc(g.name)}</b><br><span class="small muted">${when(g.created)} · ${g.mode === 'company' ? 'Байгууллага' : 'Найзууд'}${g.multiDay ? ' · Олон өдөр' : ''}${g.budget ? ' · ' + fmt(g.budget) : ''}${g.drawn ? ` · ${g.seen}/${g.people} нээсэн` : ''}</span></span>
+      <span class="pill">${g.people} хүн</span>
+      ${g.broken ? `<span class="pill" style="background:#fde8e8;color:var(--red-d)">⚠️ ${g.broken} асуудал</span>` : g.revealed ? '<span class="pill ok">Ил болсон</span>' : g.drawn ? '<span class="pill ok">Сугалсан</span>' : '<span class="pill">Хүлээгдэж буй</span>'}
+    </li>`).join('')}</ul>` : '<p class="muted">Одоогоор бүлэг алга.</p>'}`;
+}
+/* Эзний самбар: нэг бүлгийн дэлгэрэнгүй */
+async function ownerGroupPage(gid, action = 'ownerGroup') {
+  const pin = LS.get('ns_owner_pin', '');
+  if (!pin) { location.hash = '#/owner'; return; }
+  app.innerHTML = '<p class="muted" style="text-align:center;margin-top:40px">Ачаалж байна…</p>';
+  let d; try { d = await api(action, { pin, gid }); } catch (e) { app.innerHTML = `<div class="card"><h2>😕 ${esc(e.message)}</h2><a class="btn" href="#/owner">← Самбар</a></div>`; return; }
+  const g = d.group, ps = d.people;
+  const dt = ms => ms ? new Date(ms).toLocaleString('sv-SE', { timeZone: 'Asia/Ulaanbaatar' }).slice(5, 16) : '—';
+  const broken = g.drawn ? ps.filter(p => !p.recipient || p.recipient.startsWith('⚠️')) : [];
+  const seen = ps.filter(p => p.seenAt).length;
+  app.innerHTML = `
+  <p><a href="#/owner">← Самбар</a></p>
+  <div class="card festive"><p class="muted small">${g.mode === 'company' ? 'Байгууллага' : 'Найзууд'}${g.multiDay ? ' · Олон өдөр' : ''} · код ${esc(g.id)}</p>
+    <h1 style="color:#fff">${esc(g.name)}</h1>
+    <div class="row small"><div>👥 <b>${ps.length}</b> хүн</div>${g.budget ? `<div>💰 <b>${fmt(g.budget)}</b></div>` : ''}${g.date ? `<div>📅 <b>${esc(g.date)}</b></div>` : ''}</div>
+    <p class="small" style="margin-top:6px">Үүссэн: ${dt(g.created)} · Сугалаа: ${g.drawnAt ? dt(g.drawnAt) : 'татаагүй'}${g.revealedAt ? ' · Ил болсон: ' + dt(g.revealedAt) : ''}</p></div>
+  ${d.fixed ? `<div class="card green"><b>✅ ${d.fixed} хүний сугалааг засаж оноолоо.</b> Тэд хувийн линкээ дахин нээхэд хүлээн авагчаа харна.</div>` : ''}
+  ${broken.length ? `<div class="card" style="border-color:#f3b4b4;background:#fff6f6">
+    <h3>⚠️ ${broken.length} хүнд хүлээн авагч оноогдоогүй</h3>
+    <p class="small">${broken.map(p => esc(p.name)).join(', ')} — эдгээр хүмүүс хувийн хуудсаа нээхэд хэнд бэлэг өгөх нь харагдахгүй.</p>
+    <button class="btn" id="heal">🔧 Автоматаар засах</button>
+    <p class="small muted" style="margin-top:8px">Засагдахгүй бол зохион байгуулагчийн хэсэгт ороод сугалааг цуцалж, дахин татна уу.</p></div>` : ''}
+  <div class="card"><h3>🔑 Зохион байгуулагчийн хэсэг</h3>
+    <p class="small muted">Сугалаа татах/цуцлах, хүн нэмэх/хасах, тохиргоог эндээс хийнэ.</p>
+    <div class="copy"><input readonly value="${esc(link(`/admin/${g.id}/${g.adminKey}`))}"><a class="btn sm" href="#/admin/${g.id}/${g.adminKey}">Нээх</a></div></div>
+  <div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">👥 Оролцогчид</h3>
+    ${g.drawn ? `<span class="small muted" style="flex:none">${seen}/${ps.length} хуудсаа нээсэн</span>` : ''}
+    ${g.drawn ? `<button class="btn ghost sm" id="showPairs" style="flex:none">👁 Хосуудыг харах</button>` : ''}</div>
+    <ul class="list" style="margin-top:10px">${ps.map(p => `<li style="flex-wrap:wrap">
+      <span class="grow" style="min-width:160px"><b>${esc(p.name)}</b>${p.dept ? ` <span class="small muted">· ${esc(p.dept)}</span>` : ''}<br>
+        <span class="small muted">${p.byAdmin ? 'Зохион байгуулагч нэмсэн' : 'Өөрөө нэгдсэн'} · ${p.hasPin ? 'PIN-тэй' : 'PIN-гүй'} · ${p.wishes} хүсэл</span>
+        ${g.drawn ? `<span class="pairs hide small"><br>🎁 → <b>${esc(p.recipient || '—')}</b></span>` : ''}</span>
+      ${g.drawn ? (p.recipient && !p.recipient.startsWith('⚠️') ? (p.seenAt ? `<span class="pill ok" title="${dt(p.seenAt)}">✓ Нээсэн</span>` : '<span class="pill">Нээгээгүй</span>') : '<span class="pill" style="background:#fde8e8;color:var(--red-d)">⚠️ Оноогдоогүй</span>') : ''}
+      <button class="btn ghost sm" data-cp="${esc(link(`/me/${g.id}/${p.token}`))}" style="flex:none">🔗 Линк</button>
+    </li>`).join('')}</ul>
+    <p class="small muted" style="margin-top:8px">🔗 Линк — тухайн хүний хувийн линкийг хуулна. Линкээ алдсан, эсвэл өөр утсаар орж харж чадахгүй байгаа хүнд илгээж өгнө.</p></div>`;
+  app.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.cp).then(() => toast('Линк хуулагдлаа'), () => prompt('Линк', b.dataset.cp)); });
+  if ($('#heal')) $('#heal').onclick = () => ownerGroupPage(gid, 'ownerHeal');
+  if ($('#showPairs')) $('#showPairs').onclick = (e) => { const on = app.querySelector('.pairs').classList.contains('hide'); app.querySelectorAll('.pairs').forEach(x => x.classList.toggle('hide', !on)); e.target.textContent = on ? '🙈 Хосуудыг нуух' : '👁 Хосуудыг харах'; };
 }
 
 /* ================= Конфетти ================= */

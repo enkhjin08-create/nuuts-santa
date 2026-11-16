@@ -113,6 +113,32 @@ async function newParticipant(s, gid, { name, dept, wish, pin }, byAdmin = false
   return p;
 }
 
+
+/* Сугалааны дараа зарим хүн хүлээн авагчгүй болсон бол (жишээ нь хүсэл хадгалах үед давхар
+   бичигдэж assignedTo арилсан) хэнд ч оноогдоогүй хүмүүстэй нь холбож засна. */
+async function healDraw(s, gid, m, ps) {
+  if (!m?.drawnAt) return 0;
+  const ids = new Set(ps.map((p) => p.id));
+  const missing = ps.filter((p) => !p.assignedTo || !ids.has(p.assignedTo));
+  if (!missing.length) return 0;
+  const taken = new Set(ps.filter((p) => p.assignedTo && ids.has(p.assignedTo)).map((p) => p.assignedTo));
+  const free = ps.filter((p) => !taken.has(p.id));
+  if (free.length !== missing.length) return 0;
+  for (let tries = 0; tries < 200; tries++) {
+    const order = [...free].sort(() => Math.random() - 0.5);
+    if (missing.every((g, i) => g.id !== order[i].id)) {
+      for (let i = 0; i < missing.length; i++) {
+        const fresh = (await s.get(`g/${gid}/p/${missing[i].token}`, { type: "json" })) || missing[i];
+        fresh.assignedTo = order[i].id; missing[i].assignedTo = order[i].id;
+        await s.setJSON(`g/${gid}/p/${fresh.token}`, fresh);
+      }
+      return missing.length;
+    }
+  }
+  return 0;
+}
+const ownerOk = (b) => process.env.ADMIN_PIN && String(b.pin || "") === process.env.ADMIN_PIN;
+
 /* Сугалаа: хүн бүр нэг хүнд бэлэг өгч, нэг хүнээс авна. Өөрийгөө, хориглосон хосыг,
    (сонгосон бол) нэг хэлтсийнхнийг сугалахгүй. Санамсаргүй сэлгэлтийг олон удаа оролдоно. */
 function draw(people, exclusions, sameDeptBlocked) {
@@ -228,6 +254,10 @@ export default async (req) => {
         const me = m && (await getMe(s, gid, b.token));
         if (!me) return fail("Линк буруу байна", 404);
         let recipient = null, santaThread = [], myThread = [], multi = null;
+        if (m.drawnAt && !me.assignedTo) {
+          const all = await listParticipants(s, gid);
+          if (await healDraw(s, gid, m, all)) Object.assign(me, all.find((p) => p.id === me.id) || {});
+        }
         if (m.drawnAt && me.assignedTo) {
           const ps = await listParticipants(s, gid);
           const r = ps.find((p) => p.id === me.assignedTo);
@@ -262,7 +292,8 @@ export default async (req) => {
         const me = m && (await getMe(s, gid, b.token));
         if (!me) return fail("Линк буруу байна", 404);
         me.wish = cleanWish(b.wish);
-        await s.setJSON(`g/${gid}/p/${me.token}`, me);
+        const cur = (await getMe(s, gid, b.token)) || me;
+        await s.setJSON(`g/${gid}/p/${me.token}`, { ...cur, wish: me.wish });
         return json({ ok: true });
       }
 
@@ -379,6 +410,7 @@ export default async (req) => {
           m.drawnAt = Date.now();
           await s.setJSON(`g/${gid}/meta`, m);
           ps = await listParticipants(s, gid);
+          if (await healDraw(s, gid, m, ps)) ps = await listParticipants(s, gid);
         }
         if (b.action === "undraw") {
           await Promise.all(ps.map((p) => s.setJSON(`g/${gid}/p/${p.token}`, { ...p, assignedTo: null, seenAt: null, gave: {}, guess: null })));
@@ -435,6 +467,44 @@ export default async (req) => {
         }
         await s.setJSON(key, d);
         return json({ ok: true });
+      }
+
+      /* ---------- Сайт эзэмшигч: бүх бүлэг ---------- */
+      case "ownerGroups": {
+        if (!ownerOk(b)) return fail("PIN буруу байна", 403);
+        const { blobs } = await s.list({ prefix: "g/" });
+        const gids = blobs.map((x) => x.key.split("/")).filter((k) => k[2] === "meta").map((k) => k[1]);
+        const groups = await Promise.all(gids.map(async (g) => {
+          const m = await getMeta(s, g); if (!m) return null;
+          const ps = await listParticipants(s, g);
+          const ids = new Set(ps.map((p) => p.id));
+          return {
+            id: m.id, name: m.name, mode: m.mode, multiDay: !!m.multiDay, budget: m.budget || 0, created: m.createdAt,
+            drawn: !!m.drawnAt, revealed: !!m.revealedAt, people: ps.length,
+            seen: ps.filter((p) => p.seenAt).length,
+            broken: m.drawnAt ? ps.filter((p) => !p.assignedTo || !ids.has(p.assignedTo)).length : 0,
+          };
+        }));
+        return json({ groups: groups.filter(Boolean).sort((a, c) => c.created - a.created) });
+      }
+      case "ownerGroup":
+      case "ownerHeal": {
+        if (!ownerOk(b)) return fail("PIN буруу байна", 403);
+        const m = await getMeta(s, gid);
+        if (!m) return fail("Бүлэг олдсонгүй", 404);
+        let ps = await listParticipants(s, gid);
+        let fixed = 0;
+        if (b.action === "ownerHeal") { fixed = await healDraw(s, gid, m, ps); ps = await listParticipants(s, gid); }
+        const byId = Object.fromEntries(ps.map((p) => [p.id, p]));
+        return json({
+          fixed,
+          group: { ...publicGroup(m, ps.length, []), adminKey: m.adminKey, created: m.createdAt, drawnAt: m.drawnAt, revealedAt: m.revealedAt, sameDeptBlocked: !!m.sameDeptBlocked },
+          people: ps.map((p) => ({
+            id: p.id, name: p.name, dept: p.dept, token: p.token, byAdmin: !!p.byAdmin, hasPin: !!p.pinHash,
+            joinedAt: p.joinedAt, seenAt: p.seenAt, wishes: p.wish?.items?.length || 0,
+            recipient: p.assignedTo ? byId[p.assignedTo]?.name || "⚠️ устсан хүн" : null,
+          })),
+        });
       }
 
       case "stats": {
