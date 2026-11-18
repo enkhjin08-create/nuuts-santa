@@ -1052,12 +1052,21 @@ async function ownerGifts(clicks) {
   const brands = ['Бүгд', 'Зөвхөн түүнд', 'CuteCups'];
   const ranges = [[0, 10000, '10мян хүртэл'], [10000, 20000, '10–20мян'], [20000, 30000, '20–30мян'], [30000, 50000, '30–50мян'], [50000, 1e12, '50мян+']];
   const cnt = (b, r) => all.filter(g => g.brand === b && g.price >= r[0] && g.price < r[1]).length;
-  let brand = 'Бүгд', sort = 'clicks', q = '';
+  let brand = 'Бүгд', sort = 'clicks', q = '', open = false;
   const draw = () => {
+    const totalC = all.reduce((n, g) => n + g.c, 0);
+    if (!open) {
+      el.innerHTML = `<div class="row" style="align-items:center;gap:10px"><h3 style="margin:0;flex:1">🛍️ Санал болгож буй бараа · ${all.length}</h3>
+        <button class="btn ghost sm" id="ogtoggle" style="flex:none" aria-expanded="false">Харах ▾</button></div>
+        <p class="small muted" style="margin:6px 0 0">${totalC} удаа дарсан (30 хоног) · жагсаалт хураагдсан</p>`;
+      $('#ogtoggle').onclick = () => { open = true; draw(); };
+      return;
+    }
     let list = all.filter(g => (brand === 'Бүгд' || g.brand === brand) && (!q || g.name.toLowerCase().includes(q)));
     list.sort(sort === 'clicks' ? (a, b) => b.c - a.c || a.price - b.price : sort === 'asc' ? (a, b) => a.price - b.price : (a, b) => b.price - a.price);
     const totalClicks = all.reduce((n, g) => n + g.c, 0);
-    el.innerHTML = `<h3>🛍️ Санал болгож буй бараа · ${all.length}</h3>
+    el.innerHTML = `<div class="row" style="align-items:center;gap:10px"><h3 style="margin:0;flex:1">🛍️ Санал болгож буй бараа · ${all.length}</h3>
+      <button class="btn ghost sm" id="ogtoggle" style="flex:none" aria-expanded="true">Хураах ▴</button></div>
       <p class="small muted">Зочдод төсвөөр нь санал болгодог бараанууд (gifts.json). Дарсан тоо нь сүүлийн 30 хоногийнх${totalClicks ? '' : ' — одоогоор бүртгэгдээгүй байна'}.</p>
       <div style="overflow-x:auto;margin:10px 0 14px"><table style="width:100%;border-collapse:collapse;font-size:13px">
         <tr><th style="text-align:left;padding:6px">Үнийн бүс</th>${brands.slice(1).map(b => `<th style="padding:6px 4px;text-align:right;white-space:nowrap">${esc(b === 'Зөвхөн түүнд' ? 'ЗТ' : b)}</th>`).join('')}</tr>
@@ -1076,6 +1085,7 @@ async function ownerGifts(clicks) {
         <span class="pill ${g.c ? 'ok' : ''}" title="30 хоногт дарсан">${g.c} дарсан</span>
         <a class="btn ghost sm" href="${esc(fixUrl(g.url))}" target="_blank" rel="noopener" style="flex:none">↗</a>
       </li>`).join('') || '<li class="muted">Олдсонгүй</li>'}</ul>`;
+    $('#ogtoggle').onclick = () => { open = false; draw(); el.scrollIntoView({ block: 'nearest' }); };
     el.querySelectorAll('[data-ob]').forEach(b => b.onclick = () => { brand = b.dataset.ob; draw(); });
     $('#ogs').onchange = e => { sort = e.target.value; draw(); };
     const inp = $('#ogq'); inp.oninput = () => { q = inp.value.trim().toLowerCase(); const pos = inp.selectionStart; draw(); const n = $('#ogq'); n.focus(); n.setSelectionRange(pos, pos); };
@@ -1116,8 +1126,8 @@ function ownerView(d, pin) {
   <div class="card"><h3>Шинээр үүссэн бүлэг · сүүлийн 30 хоног</h3>${bars(d.daily, 'groups', 'var(--green)')}</div>
   <div class="card"><h3>🎁 Брэндээр бэлгийн линк дарсан (30 хоног)</h3>${hbars(d.brands)}</div>
   <div class="card"><h3>Хуудсаар үзэлт (30 хоног)</h3>${hbars(d.pages, pageNames)}</div>
-  <div class="card" id="ogifts"><h3>🛍️ Санал болгож буй бараа</h3><p class="small muted">Ачаалж байна…</p></div>
-  <div class="card" id="ogroups"><h3>📋 Бүх бүлэг</h3><p class="small muted">Ачаалж байна…</p></div>`;
+  <div class="card" id="ogroups"><h3>📋 Бүх бүлэг</h3><p class="small muted">Ачаалж байна…</p></div>
+  <div class="card" id="ogifts"><h3>🛍️ Санал болгож буй бараа</h3><p class="small muted">Ачаалж байна…</p></div>`;
   ownerGifts(d.giftClicks || {});
   ownerGroups(pin);
   $('#ologout').onclick = () => { LS.set('ns_owner_pin', ''); pageOwner(); };
