@@ -45,6 +45,20 @@ async function addFail(s, m) {
 }
 const clean = (s, max = 200) => String(s ?? "").replace(/[<>]/g, "").trim().slice(0, max);
 
+/* Олон blob зэрэг уншихад "fetch failed" гардаг тул зэрэг уншилтыг хязгаарлаж, алдаа гарвал дахин оролдоно */
+async function getRetry(s, key, tries = 3) {
+  for (let i = 0; ; i++) {
+    try { return await s.get(key, { type: "json" }); }
+    catch (e) { if (i >= tries - 1) throw e; await new Promise((r) => setTimeout(r, 250 * (i + 1))); }
+  }
+}
+async function pool(items, n, fn) {
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); }
+  }));
+  return out;
+}
 async function getMeta(s, gid) {
   if (!gid || !/^[a-z0-9]{4,20}$/.test(gid)) return null;
   return s.get(`g/${gid}/meta`, { type: "json" });
@@ -476,19 +490,27 @@ export default async (req) => {
       case "ownerGroups": {
         if (!ownerOk(b)) return fail("PIN буруу байна", 403);
         const { blobs } = await s.list({ prefix: "g/" });
-        const gids = blobs.map((x) => x.key.split("/")).filter((k) => k[2] === "meta").map((k) => k[1]);
-        const groups = await Promise.all(gids.map(async (g) => {
-          const m = await getMeta(s, g); if (!m) return null;
-          const ps = await listParticipants(s, g);
-          const ids = new Set(ps.map((p) => p.id));
-          return {
-            id: m.id, name: m.name, mode: m.mode, multiDay: !!m.multiDay, budget: m.budget || 0, created: m.createdAt,
-            drawn: !!m.drawnAt, revealed: !!m.revealedAt, people: ps.length,
-            seen: ps.filter((p) => p.seenAt).length,
-            broken: m.drawnAt ? ps.filter((p) => !p.assignedTo || !ids.has(p.assignedTo)).length : 0,
-          };
-        }));
-        return json({ groups: groups.filter(Boolean).sort((a, c) => c.created - a.created) });
+        const pkeys = {}; const gids = [];
+        for (const { key } of blobs) {
+          const k = key.split("/");
+          if (k[2] === "meta") gids.push(k[1]);
+          else if (k[2] === "p") (pkeys[k[1]] ||= []).push(key);
+        }
+        let failed = 0;
+        const groups = await pool(gids, 6, async (g) => {
+          try {
+            const m = await getRetry(s, `g/${g}/meta`); if (!m) return null;
+            const ps = (await pool(pkeys[g] || [], 6, (key) => getRetry(s, key))).filter(Boolean);
+            const ids = new Set(ps.map((p) => p.id));
+            return {
+              id: m.id, name: m.name, mode: m.mode, multiDay: !!m.multiDay, budget: m.budget || 0, created: m.createdAt,
+              drawn: !!m.drawnAt, revealed: !!m.revealedAt, people: ps.length,
+              seen: ps.filter((p) => p.seenAt).length,
+              broken: m.drawnAt ? ps.filter((p) => !p.assignedTo || !ids.has(p.assignedTo)).length : 0,
+            };
+          } catch { failed++; return null; }
+        });
+        return json({ failed, groups: groups.filter(Boolean).sort((a, c) => c.created - a.created) });
       }
       case "ownerGroup":
       case "ownerHeal": {

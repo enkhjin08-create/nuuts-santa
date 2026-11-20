@@ -1138,10 +1138,12 @@ function ownerView(d, pin) {
 /* Эзний самбар: бүх бүлгийн жагсаалт */
 async function ownerGroups(pin) {
   const el = $('#ogroups'); if (!el) return;
-  let d; try { d = await api('ownerGroups', { pin }); } catch (e) { el.innerHTML = `<h3>📋 Бүх бүлэг</h3><p class="err">${esc(e.message)}</p>`; return; }
+  el.innerHTML = '<h3>📋 Бүх бүлэг</h3><p class="small muted">Ачаалж байна…</p>';
+  let d; try { d = await api('ownerGroups', { pin }); } catch (e) { el.innerHTML = `<h3>📋 Бүх бүлэг</h3><p class="err">Бүлгүүдийг ачаалж чадсангүй (${esc(e.message)}).</p><button class="btn ghost sm" id="ogretry">↻ Дахин оролдох</button>`; $('#ogretry').onclick = () => ownerGroups(pin); return; }
   const when = ms => new Date(ms).toLocaleDateString('sv-SE').slice(5);
   const bad = d.groups.filter(g => g.broken).length;
   el.innerHTML = `<h3>📋 Бүх бүлэг · ${d.groups.length}</h3>
+    ${d.failed ? `<p class="small muted">${d.failed} бүлгийг уншиж чадсангүй — дахин шинэчилнэ үү.</p>` : ''}
     ${bad ? `<p class="note" style="background:#fde8e8;border-color:#f3b4b4">⚠️ ${bad} бүлэгт сугалаагаа аваагүй хүн байна. Бүлэг дээр дарж засна уу.</p>` : ''}
     <p class="small muted">Бүлэг дээр дарж оролцогчид, тэдний хувийн линк, сугалааны төлөвийг харна.</p>
     ${d.groups.length ? `<ul class="list">${d.groups.map(g => `<li style="cursor:pointer" onclick="location.hash='#/owner/g/${g.id}'">
